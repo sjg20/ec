@@ -1,0 +1,14 @@
+identifier: scarlet
+name: "Acer Chromebook Tab 10 Embedded Controller"
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 32
+flash: 256
+testing:
+  ignore_tags:
+    - net
+    - bluetooth

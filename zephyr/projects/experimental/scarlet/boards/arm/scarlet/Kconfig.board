@@ -1,0 +1,8 @@
+# Google Scarlet EC
+
+# Copyright 2020 The Chromium OS Authors
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_SCARLET
+	bool "Google Scarlet EC"
+	depends on SOC_STM32F098XX

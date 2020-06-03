@@ -1,0 +1,11 @@
+# Google Scarlet EC
+
+# Copyright 2020 The Chromium OS Authors
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_SCARLET
+
+config BOARD
+	default "scarlet"
+
+endif # BOARD_SCARLET
