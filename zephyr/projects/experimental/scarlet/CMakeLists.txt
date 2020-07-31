@@ -9,7 +9,7 @@ set(BOARD scarlet)
 
 # Set the compiler needed for this board
 # TODO(b/161461212): move absolute path into another file
-set(CROSS_COMPILE /usr/bin/arm-none-eabi-)
+set(CROSS_COMPILE /opt/coreboot-sdk/bin/arm-eabi-)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(scarlet)
