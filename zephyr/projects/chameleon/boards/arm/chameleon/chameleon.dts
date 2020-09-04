@@ -1,0 +1,45 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Copyright (c) 2020 The Chromium OS Authors
+ *
+ */
+
+/dts-v1/;
+#include <st/f1/stm32f103Xe.dtsi>
+
+/ {
+	model = "Google Chameleon";
+	compatible = "st,stm32f103ze", "st,stm32f103";
+
+	chosen {
+		zephyr,console = &usart1;
+		zephyr,shell-uart = &usart1;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		power_good_led: led {
+			gpios = <&gpiob 14 GPIO_ACTIVE_HIGH>;
+			label = "PowerGood";
+		};
+	};
+
+	aliases {
+		led0 = &power_good_led;
+	};
+};
+
+&usart1 {
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&timers1 {
+	status = "okay";
+};
+
+&systick {
+	status = "okay";
+};

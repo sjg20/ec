@@ -1,0 +1,8 @@
+# Google Chameleon
+
+# Copyright 2020 The Chromium OS Authors
+# SPDX-License-Identifier: BSD-3-Clause
+
+config BOARD_GOOGLE_CHAMELEON
+	bool "Google Chameleon"
+	depends on SOC_STM32F103XE

@@ -1,0 +1,10 @@
+identifier: google_chameleon
+name: Google Chameleon
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+ram: 64
+flash: 512
+supported:
+  - gpio

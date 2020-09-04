@@ -1,0 +1,9 @@
+# Copyright 2020 The Chromium OS Authors
+# SPDX-License-Identifier: BSD-3-Clause
+
+if BOARD_GOOGLE_CHAMELEON
+
+config BOARD
+	default "google_chameleon"
+
+endif # BOARD_GOOGLE_CHAMELEON
