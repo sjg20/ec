@@ -29,12 +29,57 @@ Output files are in `~/zephyrproject/build/zephyr`
 
 ## Load firmware
 
+You can use a
+[SEGGER JLink](https://www.segger.com/products/debug-probes/j-link/) probe
+to program the firmware, or you can use the serial bootloader.
+
+If you use a Jlink, you will need an
+[Altera FPGA adapter](https://www.segger.com/products/debug-probes/j-link/accessories/adapters/intel-fpga-adapter/)
+or a [Xilinx FPGA adapter](https://www.segger.com/products/debug-probes/j-link/accessories/adapters/xilinx-adapter/)
+to connect to the Chameleon board. As of Proto 0, you can program via the
+JTAG interface only if the FPGA board is not installed.
+
+If you want to use the serial bootloader, you will need a a USB-A to USB-C
+cable, and you need to install `stm32flash` and build `stm32reset`.
+
+### Install `stm32flash` and build `stm32reset`
+
+If you want to use the serial bootloader to update the STM32's firmware, you
+will need to install `stm32flash` and build `stm32reset`.
+
+```
+sudo apt-get install stm32flash
+sudo apt-get install gpiod
+sudo apt-get install libgpiod-dev
+cd ~/chromiumos/src/platform/chameleon/utils/stm32reset
+make
+```
+
+### Jlink
+
 Connect your JLink to the JTAG, using either the Altera or Xilinx adapter.
 Connect 12V power to the Chameleon.
 
 ```
 cd ~/zephyrproject
 west flash --erase --reset-after-load
+```
+
+### Serial Bootloader
+
+This section assumes that the chromiumos chroot environment is set up in
+~/chromiumos, and that zephyr is set up in ~/zephyrproject.
+
+Connect the USB-C cable to the USB-C port closest to the HDMI/DisplayPort
+connectors.
+
+Connect 12V power to the Chameleon.
+
+```
+sudo ~/chromiumos/src/platform/chameleon/utils/stm32reset/stm32reset --bootloader
+stm32flash -o -f /dev/ttyUSB0
+stm32flash -w ~/zephyrproject/zephyr/build/zephyr/zephyr.bin -v -S 0x8000000 -f /dev/ttyUSB0
+sudo ~/chromiumos/src/platform/chameleon/utils/stm32reset/stm32reset --user
 ```
 
 ## Testing
