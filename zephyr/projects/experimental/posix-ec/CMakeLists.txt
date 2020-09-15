@@ -8,5 +8,3 @@ set(BOARD native_posix)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(posix-ec)
-
-target_sources(app PRIVATE src/main.c)

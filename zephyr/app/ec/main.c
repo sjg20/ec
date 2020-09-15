@@ -3,8 +3,12 @@
  * found in the LICENSE file.
  */
 
+#include <sys/printk.h>
 #include <zephyr.h>
 
 void main(void)
 {
+	printk("Hello from a Chrome EC!\n");
+	printk("  BOARD=%s\n", CONFIG_BOARD);
+	printk("  ACTIVE_COPY=%s\n", CONFIG_CHROME_EC_ACTIVE_COPY);
 }

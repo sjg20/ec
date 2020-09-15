@@ -1,0 +1,10 @@
+# Copyright 2020 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Set ${ZEPHYR_CHROME} as a convenience variable to the root path of
+# this module.
+set(ZEPHYR_CHROME "${ZEPHYR_CURRENT_MODULE_DIR}" CACHE PATH
+    "Path to the zephyr-chrome repository.")
+
+add_subdirectory("app")

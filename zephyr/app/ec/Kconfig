@@ -1,0 +1,39 @@
+# Copyright 2020 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+menuconfig CHROME_EC
+	bool "Chrome EC"
+	imply SHELL
+	imply PRINTK
+	help
+	  Utilize the common Chrome EC application
+
+if CHROME_EC
+
+choice
+	prompt "ChromeOS EC firmware section"
+
+config CHROME_EC_RO
+	bool "This build is will be for the RO copy of the EC"
+	help
+	  This build will be used to produce a copy for the read-only
+	  section of the EC firmware.
+
+config CHROME_EC_RW
+	bool "This build is will be for the RW copy of the EC"
+	help
+	  This build will be used to produce a copy for the read-write
+	  section of the EC firmware.
+
+endchoice
+
+config CHROME_EC_ACTIVE_COPY
+	string
+	default "RO" if CHROME_EC_RO
+	default "RW" if CHROME_EC_RW
+	help
+	  When the active copy name is output to a console, this
+	  string will be displayed.
+
+endif # CHROME_EC
