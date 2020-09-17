@@ -10,4 +10,4 @@ set(BOARD chameleon)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(chameleon)
 
-target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE src/main.c src/led.c)

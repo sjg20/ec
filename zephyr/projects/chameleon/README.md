@@ -101,3 +101,13 @@ Hello World! arm
 
 The red LED at the bottom edge of the board (near the PCIe connector) will
 blink at 0.5 Hz.
+
+# Chameleon Application
+
+Modify the Hello World application to turn on the POWERGOOD LED (that was
+blinking in the "hello, blinky world") app.
+
+Building and running remains the same.
+
+When the Zephyr kernel boots, the POWERGOOD LED (red LED near the PCIe
+connector) will turn on and stay lit.

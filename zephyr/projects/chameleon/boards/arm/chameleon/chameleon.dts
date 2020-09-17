@@ -181,10 +181,6 @@
 			label = "PowerGood";
 		};
 	};
-
-	aliases {
-		led0 = &power_good_led;
-	};
 };
 
 &usart1 {
