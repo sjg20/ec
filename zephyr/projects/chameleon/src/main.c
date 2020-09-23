@@ -16,12 +16,9 @@ void main(void)
 
 	printk("Hello World!\n");
 
-	ret = led_powergood_on();
+	ret = led_powergood(true);
 	if (ret < 0)
 		printk("Failed to turn on POWERGOOD, ret = %d.\n", ret);
 	else
 		printk("POWERGOOD!\n");
-
-	while (1) {
-	}
 }
