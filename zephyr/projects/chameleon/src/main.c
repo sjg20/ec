@@ -9,6 +9,7 @@
 #include <sys/printk.h>
 
 #include "led.h"
+#include "sysmon.h"
 
 void main(void)
 {
@@ -21,4 +22,10 @@ void main(void)
 		printk("Failed to turn on POWERGOOD, ret = %d.\n", ret);
 	else
 		printk("POWERGOOD!\n");
+
+	ret = sysmon_init();
+	if (ret < 0)
+		printk("sysmon_init failed, ret = %d.\n", ret);
+	else
+		printk("sysmon_init done\n");
 }

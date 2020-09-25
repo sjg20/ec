@@ -181,6 +181,11 @@
 			label = "PowerGood";
 		};
 	};
+
+	zephyr,user {
+		sysmon_sel_gpios = <&gpioc 6 GPIO_ACTIVE_HIGH>;
+	};
+
 };
 
 &usart1 {
