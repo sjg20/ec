@@ -19,10 +19,9 @@
 
 int led_powergood(bool turn_on)
 {
-	struct device *dev;
 	int ret;
 
-	dev = device_get_binding(PG_LED);	/* "GPIOB" also works */
+	const struct device *dev = device_get_binding(PG_LED);
 	if (dev == NULL)
 		return -ENODEV;
 
