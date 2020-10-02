@@ -33,11 +33,7 @@ static const struct pin_config pinconf[] = {
 	{ STM32_PIN_PC2, STM32F1_PINMUX_FUNC_PC2_ADC123_IN12 },
 	{ STM32_PIN_PC3, STM32F1_PINMUX_FUNC_PC3_ADC123_IN13 },
 	{ STM32_PIN_PC4, STM32F1_PINMUX_FUNC_PC4_ADC12_IN14 },
-	/* Use STM32_CNF_IN_ANALOG due to a typo in pinmux_stm32f1.h, line 103.
-	 * It has PC4 instead of PC5 for STM32F1_PINMUX_FUNC_PC5_ADC12_IN15.
-	 * TODO(pfagerburg) change when PR #28336 is merged.
-	 */
-	{ STM32_PIN_PC5, STM32_CNF_IN_ANALOG },
+	{ STM32_PIN_PC5, STM32F1_PINMUX_FUNC_PC5_ADC12_IN15 },
 
 
 	/* USART/UART interfaces */
@@ -50,12 +46,8 @@ static const struct pin_config pinconf[] = {
 	{ STM32_PIN_PC10, STM32F1_PINMUX_FUNC_PC10_UART4_TX },
 	{ STM32_PIN_PC11, STM32F1_PINMUX_FUNC_PC11_UART4_RX },
 
-	/* Use STM32_PIN_USART_TX/RX because the UART5 options aren't defined
-	 * in pinmux_stm32f1.h
-	 * TODO(pfagerburg) change when PR #28336 is merged.
-	 */
-	{ STM32_PIN_PC12, STM32_PIN_USART_TX },
-	{ STM32_PIN_PD2, STM32_PIN_USART_RX },
+	{ STM32_PIN_PC12, STM32F1_PINMUX_FUNC_PC12_UART5_TX },
+	{ STM32_PIN_PD2, STM32F1_PINMUX_FUNC_PD2_UART5_RX },
 
 	/* SPI bus */
 	{ STM32_PIN_PA4, STM32F1_PINMUX_FUNC_PA4_SPI1_MASTER_NSS },
