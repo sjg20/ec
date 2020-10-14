@@ -10,6 +10,7 @@
 
 #include "led.h"
 #include "sysmon.h"
+#include "sd.h"
 
 void main(void)
 {
@@ -28,4 +29,10 @@ void main(void)
 		printk("sysmon_init failed, ret = %d.\n", ret);
 	else
 		printk("sysmon_init done\n");
+
+	ret = sd_mux_init();
+	if (ret < 0)
+		printk("sd_mux_init failed, ret = %d.\n", ret);
+	else
+		printk("sd_mux_init done\n");
 }

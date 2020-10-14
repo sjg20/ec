@@ -32,6 +32,11 @@
 
 	zephyr,user {
 		sysmon_sel_gpios = <&gpioc 6 GPIO_ACTIVE_HIGH>;
+		sd_mux_sel_gpios = <&gpioe 0 GPIO_ACTIVE_HIGH>;
+		sd_mux_en_l_gpios = <&gpioe 1 GPIO_ACTIVE_HIGH>;
+		usd_pwr_sel_gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
+		usd_pwr_en_gpios = <&gpioe 4 GPIO_ACTIVE_HIGH>;
+		usd_cd_det_gpios = <&gpioe 2 GPIO_ACTIVE_HIGH>;
 	};
 
 };
