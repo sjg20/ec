@@ -59,8 +59,9 @@ static int sd_mux_pin_init(struct sd_ctrl_pin *p_mux_pin, const char *name,
 	p_mux_pin->name = name;
 	p_mux_pin->pin = pin;
 	p_mux_pin->dev = device_get_binding(p_mux_pin->name);
-	if (p_mux_pin->dev == NULL)
+	if (p_mux_pin->dev == NULL) {
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -224,15 +225,17 @@ static int cmd_sd(const struct shell *shell, size_t argc, char **argv)
 {
 	/* The shell should never call a command without a valid argv[0]. */
 	__ASSERT(argc >= 1, "Shell passed invalid argument count");
-	if (argc == 0)
+	if (argc == 0) {
 		return -EINVAL;
+	}
 
-	if (strcmp(argv[0], "off") == 0)
+	if (strcmp(argv[0], "off") == 0) {
 		return sd_mux_set(SD_MUX_OFF);
-	else if (strcmp(argv[0], "fpga") == 0)
+	} else if (strcmp(argv[0], "fpga") == 0) {
 		return sd_mux_set(SD_MUX_FPGA);
-	else if (strcmp(argv[0], "usb") == 0)
+	} else if (strcmp(argv[0], "usb") == 0) {
 		return sd_mux_set(SD_MUX_USB);
+	}
 
 	/*
 	 * The shell should not have called this function at all

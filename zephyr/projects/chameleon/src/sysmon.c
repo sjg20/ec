@@ -105,8 +105,9 @@ int sysmon_init(void)
 
 	/* Set the analog switches for the regulator outputs. */
 	ret = sysmon_sel(SYSMON_SEL_REGULATORS);
-	if (ret < 0)
+	if (ret < 0) {
 		return ret;
+	}
 
 	/* Configure the ADCs. */
 	for (int idx = 0 ; idx < ARRAY_SIZE(adc_list) ; ++idx) {

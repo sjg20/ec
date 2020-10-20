@@ -22,13 +22,15 @@ int led_powergood(bool turn_on)
 	int ret;
 
 	const struct device *dev = device_get_binding(PG_LED);
-	if (dev == NULL)
+	if (dev == NULL) {
 		return -ENODEV;
+	}
 
-	if (turn_on)
+	if (turn_on) {
 		ret = gpio_pin_configure(dev, PG_PIN, GPIO_OUTPUT_HIGH);
-	else
+	} else {
 		ret = gpio_pin_configure(dev, PG_PIN, GPIO_OUTPUT_LOW);
+	}
 	if (ret < 0) {
 		printk("gpio_pin_configure failed, ret = %d\n", ret);
 		return ret;
@@ -41,14 +43,15 @@ static int cmd_led(const struct shell *shell, size_t argc, char **argv)
 {
 	/* The shell should never call a command without a valid argv[0]. */
 	__ASSERT(argc >= 1, "Shell passed invalid argument count");
-	if (argc == 0)
+	if (argc == 0) {
 		return -EINVAL;
+	}
 
-	if (strcmp(argv[0], "on") == 0)
+	if (strcmp(argv[0], "on") == 0) {
 		led_powergood(true);
-	else if (strcmp(argv[0], "off") == 0)
+	} else if (strcmp(argv[0], "off") == 0) {
 		led_powergood(false);
-	else {
+	} else {
 		/* The shell should not have called this function at all
 		 * unless the subcommand matched a valid option.
 		 */

@@ -19,20 +19,23 @@ void main(void)
 	printk("Hello World!\n");
 
 	ret = led_powergood(true);
-	if (ret < 0)
+	if (ret < 0) {
 		printk("Failed to turn on POWERGOOD, ret = %d.\n", ret);
-	else
+	} else {
 		printk("POWERGOOD!\n");
+	}
 
 	ret = sysmon_init();
-	if (ret < 0)
+	if (ret < 0) {
 		printk("sysmon_init failed, ret = %d.\n", ret);
-	else
+	} else {
 		printk("sysmon_init done\n");
+	}
 
 	ret = sd_mux_init();
-	if (ret < 0)
+	if (ret < 0) {
 		printk("sd_mux_init failed, ret = %d.\n", ret);
-	else
+	} else {
 		printk("sd_mux_init done\n");
+	}
 }
