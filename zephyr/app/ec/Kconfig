@@ -36,4 +36,47 @@ config CROS_EC_ACTIVE_COPY
 	  When the active copy name is output to a console, this
 	  string will be displayed.
 
+config CROS_EC_RAM_SIZE
+	hex "The total available RAM size."
+	help
+		This value describes the total available RAM size for the chip.
+
+config CROS_EC_DATA_RAM_SIZE
+	hex "The total available RAM size for data."
+	help
+		This value describes the total available RAM size for data on the chip.
+
+config CROS_EC_RAM_BASE
+	hex "Base address of RAM for the chip."
+	help
+		Base address of RAM for the chip.
+
+config CROS_EC_PROGRAM_MEMORY_BASE
+	hex "The base address of the program memory region."
+	help
+		This will be used (among other things) to calculate the current PC's
+		offset within the program memory.
+
+config CROS_EC_RO_MEM_OFF
+	hex "The RO region's offset."
+	help
+		This will be used to determine if the current PC is in the RO section.
+
+config CROS_EC_RO_SIZE
+	hex "The size of the RO region."
+	help
+		This will be used (along with SYSTEM_RO_MEM_OFF) to determine if the
+		current PC is in the RO section.
+
+config CROS_EC_RW_MEM_OFF
+	hex "The RW region's offset."
+	help
+		This will be used to determine if the current PC is in the RW section.
+
+config CROS_EC_RW_SIZE
+	hex "The size of the RW region."
+	help
+		This will be used (along with SYSTEM_RW_MEM_OFF) to determine if the
+		current PC is in the RW section.
+
 endif # CROS_EC
