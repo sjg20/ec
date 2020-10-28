@@ -12,10 +12,10 @@
 #include <drivers/gpio.h>
 #include <shell/shell.h>
 #include <sys/printk.h>
+#include "gpio_signal.h"
 #include "sysmon.h"
 
-#define SEL_GPIO DT_GPIO_LABEL(DT_PATH(zephyr_user), sysmon_sel_gpios)
-#define SEL_PIN DT_GPIO_PIN(DT_PATH(zephyr_user), sysmon_sel_gpios)
+DECLARE_GPIOS_FOR(sysmon);
 
 /**
  * @brief Input selection for the analog switches.
@@ -241,18 +241,11 @@ static struct k_thread sysmon_thread_data;
 static int sysmon_sel(enum sysmon_sel sel)
 {
 	int ret;
-	int gpio_dir = (sel == SYSMON_SEL_REGULATORS) ? GPIO_OUTPUT_HIGH :
-							      GPIO_OUTPUT_LOW;
-	const struct device *gpio_dev = device_get_binding(SEL_GPIO);
 
-	if (gpio_dev == NULL) {
-		printk("Cannot get device SEL_GPIO\n");
-		return -ENODEV;
-	}
-
-	ret = gpio_pin_configure(gpio_dev, SEL_PIN, gpio_dir);
+	ret = gpio_pin_set(GPIO_LOOKUP(sysmon, sysmon_sel),
+			   (sel == SYSMON_SEL_REGULATORS) ? 1 : 0);
 	if (ret < 0) {
-		printk("gpio_pin_configure(SEL_PIN) failed, ret = %d\n", ret);
+		printk("gpio_pin_set(sysmon_sel) failed, ret = %d\n", ret);
 		return ret;
 	}
 
@@ -299,7 +292,7 @@ static void sysmon_task(void *unused1, void *unused2, void *unused3)
 	ARG_UNUSED(unused3);
 
 	uint16_t sample_buffer;
-	int idx = 0;
+	int idx = SYSMON_VMON_NUM_INPUTS;
 
 	k_thread_name_set(NULL, "sysmon_task");
 
@@ -307,6 +300,27 @@ static void sysmon_task(void *unused1, void *unused2, void *unused3)
 	 * when we get to the end. Loop forever.
 	 */
 	for (;;) {
+		/*
+		 * The delay and "next channel" logic is at the start of
+		 * this infinite loop so that if we have an error, we
+		 * can just `continue`, instead of having nested logic
+		 * that goes to the next statement if the previous one
+		 * succeeds.
+		 */
+
+		/*
+		 * Add a delay before moving to the next channel, so we
+		 * don't starve the system. 50ms was an ad-hoc choice, and
+		 * is subject to adjustment as more tasks are added to
+		 * the system.
+		 */
+		k_sleep(K_MSEC(50));
+		/* Move to the next channel */
+		idx++;
+		if (idx >= (int)SYSMON_VMON_NUM_INPUTS) {
+			idx = 0;
+		}
+
 		/* Read the ADCs one channel at a time. The Zephyr driver
 		 * for the STM32 ADC doesn't seem to like a sequence of more
 		 * than one ADC channel, even though the hardware supports it.
@@ -318,26 +332,13 @@ static void sysmon_task(void *unused1, void *unused2, void *unused3)
 			.resolution = STM_ADC_RESOLUTION,
 		};
 
-		if (sysmon_sel(scan_table[idx].sel) >= 0) {
-			if (adc_read(adc_list[scan_table[idx].adc_num].dev,
-				     &seq) >= 0) {
-				sysmon_set_val((enum sysmon_input)idx,
-					       sample_buffer);
-			}
+		if (sysmon_sel(scan_table[idx].sel) < 0) {
+			continue;
 		}
-
-		idx++;
-		if (idx >= (int)SYSMON_VMON_NUM_INPUTS) {
-			idx = 0;
+		if (adc_read(adc_list[scan_table[idx].adc_num].dev, &seq) < 0) {
+			continue;
 		}
-
-		/*
-		 * Add a delay before moving to the next channel, so we
-		 * don't starve the system. 50ms was an ad-hoc choice, and
-		 * is subject to adjustment as more tasks are added to
-		 * the system.
-		 */
-		k_sleep(K_MSEC(50));
+		sysmon_set_val((enum sysmon_input)idx, sample_buffer);
 	}
 }
 
@@ -382,6 +383,11 @@ int sysmon_init(void)
 	initted = true;
 
 	int ret = 0;
+
+	ret = gpio_pin_configure(GPIO_LOOKUP(sysmon, sysmon_sel), GPIO_OUTPUT);
+	if (ret < 0) {
+		return ret;
+	}
 
 	/* Set the analog switches for the regulator outputs. */
 	ret = sysmon_sel(SYSMON_SEL_REGULATORS);

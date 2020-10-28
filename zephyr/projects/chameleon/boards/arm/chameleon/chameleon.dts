@@ -30,13 +30,42 @@
 		};
 	};
 
-	zephyr,user {
-		sysmon_sel_gpios = <&gpioc 6 GPIO_ACTIVE_HIGH>;
-		sd_mux_sel_gpios = <&gpioe 0 GPIO_ACTIVE_HIGH>;
-		sd_mux_en_l_gpios = <&gpioe 1 GPIO_ACTIVE_HIGH>;
-		usd_pwr_sel_gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
-		usd_pwr_en_gpios = <&gpioe 4 GPIO_ACTIVE_HIGH>;
-		usd_cd_det_gpios = <&gpioe 2 GPIO_ACTIVE_HIGH>;
+	sd-mux {
+		compatible = "gpio-keys";
+
+		sd_mux_sel {
+			gpios = <&gpioe 0 0>;
+			label = "SD_MUX_SEL";
+		};
+
+		sd_mux_en_l {
+			gpios = <&gpioe 1 0>;
+			label = "SD_MUX_EN_L";
+		};
+
+		usd_pwr_sel {
+			gpios = <&gpiob 13 0>;
+			label = "USD_PWR_SEL";
+		};
+
+		usd_pwr_en {
+			gpios = <&gpioe 4 0>;
+			label = "USD_PWR_EN";
+		};
+
+		usd_cd_det {
+			gpios = <&gpioe 2 0>;
+			label = "USD_CD_DET";
+		};
+	};
+
+	sysmon {
+		compatible = "gpio-keys";
+
+		sysmon_sel {
+			gpios = <&gpioc 6 0>;
+			label = "SYSMON_SEL";
+		};
 	};
 
 };
