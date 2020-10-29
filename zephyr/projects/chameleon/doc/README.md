@@ -206,3 +206,21 @@ installed.
 
 Note that on proto0, the current monitors (CMON_SOM and CMON_BOARD) are not
 accurate due to a parts issue.
+
+## Clock Generator
+
+The Si5338 clock generator chip provides a 100 MHz clock to the FPGA SOM.
+There is no API for this; the initialization is done at startup using a
+`SYS_INIT` function.
+
+The Si5338 is fairly complex, and configuration is best done with Silicon
+Labs' [Clock Builder Pro software](https://www.silabs.com/products/development-tools/software/clockbuilder-pro-software).
+This is an MS Windows-only tool, so I ran it on my personal laptop, saved
+the project (it uses a binary format) and exported a C header file with all
+of the register settings. Note that the header file is not modified, and
+`checkpatch.pl` hates the way it's formatted.
+
+The clock output can be verified with an oscilloscope and either a very steady
+hand or some short wires to attach probes. When the board is in reset, the
+clock output is idle, but as soon as the `SYS_INIT` function runs, the clock
+output changes to a 100 MHz signal.

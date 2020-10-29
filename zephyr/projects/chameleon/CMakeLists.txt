@@ -11,4 +11,10 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(chameleon)
 
 target_include_directories(app PRIVATE include)
-target_sources(app PRIVATE src/main.c src/led.c src/sysmon.c src/sd.c)
+target_sources(app PRIVATE
+	src/main.c
+	src/led.c
+	src/sysmon.c
+	src/sd.c
+	src/si5338.c
+)
