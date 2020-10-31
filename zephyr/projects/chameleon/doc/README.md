@@ -1,0 +1,208 @@
+# Chameleon Zephyr hello, world!
+
+This document contains information about how to build the hello, world app
+for the Chameleon board using the Zephyr RTOS.
+
+## Copied from ...
+
+The hello, world app was based heavily on `experimental/scarlet`, in that I
+copied the tree over, renamed some files, and then edited all the files to
+change references to the STM32F0 series to the proper chip for Chameleon.
+
+## Chip support
+
+The Chameleon has an STM32F103ZG (1 MB flash, 96 KB RAM), but the ZG doesn't
+have a board support file in Zephyr yet. However, the ZE (STM32F103ZE, 512 KB
+flash, 64 KB RAM) does, so I just used that chip for this proof of concept.
+
+See [PR#28335](https://github.com/zephyrproject-rtos/zephyr/pull/28335) and
+[PR#28336](https://github.com/zephyrproject-rtos/zephyr/pull/28336) for
+STM32F103ZG support added in Zephyr 2.4.
+
+## Build steps
+
+```
+cd ~/zephyrproject
+west build -b chameleon -s ~/chromiumos/src/platform/zephyr-chrome/projects/chameleon
+```
+
+Output files are in `~/zephyrproject/build/zephyr`
+* zephyr.bin
+* zephyr.elf
+* zephyr.hex
+
+## Load firmware
+
+You can use a
+[SEGGER JLink](https://www.segger.com/products/debug-probes/j-link/) probe
+to program the firmware, or you can use the serial bootloader.
+
+### Jlink
+
+As of Proto 0, you can program via the JTAG interface only if the FPGA board
+is not installed.
+
+
+Connect your JLink to the JTAG, using either an
+[Altera FPGA adapter](https://www.segger.com/products/debug-probes/j-link/accessories/adapters/intel-fpga-adapter/)
+or a [Xilinx FPGA adapter](https://www.segger.com/products/debug-probes/j-link/accessories/adapters/xilinx-adapter/).
+
+Connect 12V power to the Chameleon.
+
+```
+cd ~/zephyrproject
+west flash --erase --reset-after-load
+```
+
+### Serial Bootloader
+
+To use the serial bootloader to update the STM32's firmware, you must install
+`stm32flash` and build `stm32reset`.
+
+```
+sudo apt-get install stm32flash
+sudo apt-get install gpiod
+sudo apt-get install libgpiod-dev
+cd ~/chromiumos/src/platform/chameleon/utils/stm32reset
+make
+```
+
+This section assumes that the chromiumos chroot environment is set up in
+~/chromiumos, and that zephyr is set up in ~/zephyrproject.
+
+Connect the USB-C cable to the USB-C port closest to the HDMI/DisplayPort
+connectors.
+
+Connect 12V power to the Chameleon.
+
+```
+sudo ~/chromiumos/src/platform/chameleon/utils/stm32reset/stm32reset --bootloader
+stm32flash -o -f /dev/ttyUSB0
+stm32flash -w ~/zephyrproject/zephyr/build/zephyr/zephyr.bin -v -S 0x8000000 -f /dev/ttyUSB0
+sudo ~/chromiumos/src/platform/chameleon/utils/stm32reset/stm32reset --user
+```
+
+## Testing
+
+Open miniterm
+
+```
+$ miniterm.py /dev/ttyUSB0 115200
+--- Miniterm on /dev/ttyUSB0  115200,8,N,1 ---
+--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---
+```
+
+Press the reset button, located between the STM32 and the edge of the PCB.
+Observe the following text on the terminal:
+```
+*** Booting Zephyr OS version 2.3.0  ***
+Hello World! arm
+```
+
+The red LED at the bottom edge of the board (near the PCIe connector) will
+blink at 0.5 Hz.
+
+# Chameleon Application
+
+Instructions to build and run remain the same.
+
+When the Zephyr kernel boots, the POWERGOOD LED (red LED near the PCIe
+connector, previously the "blinky" LED in the hello, world! app) turns on and
+stays lit. The shell prompt (`uart:~$`) appears after the startup messages.
+
+## POWERGOOD LED
+
+`led off` and `led on` control the POWERGOOD LED.
+
+## Micro SD Card
+
+The micro SD card can be connected to the PC through the same USB connection
+as the serial console, connected to the FPGA's SD card controller, or
+completely disconnected. The `sd` commands takes a sub-command:
+* `off` - Disconnect the SD card from the USB port and the FPGA
+* `usb` - Connect the SD card to the USB port
+* `fpga` - Connect the SD card to the FPGA's SD card controller
+* `status` - Show the current setting for the SD mux and the status of the
+  CD_DET line.
+
+Start with the uSD slot empty.
+```
+uart:~$ sd status
+The SD mux is set to disconnected
+CD_DET = 1
+```
+Push the card into the slot.
+```
+uart:~$ sd status
+The SD mux is set to disconnected
+CD_DET = 0
+```
+Physically eject the card.
+
+Connect the mux to the USB controller.
+```
+uart:~$ sd usb
+```
+Push the card into the slot.
+```
+uart:~$ sd status
+The SD mux is set to USB
+CD_DET = 0
+```
+Your computer will show a new removable drive for the uSD card.
+
+Use the operating system to "safely eject" the removable drive.
+
+Physically eject the card.
+
+Connect the mux to the FPGA.
+```
+uart:~$ sd fpga
+```
+Push the card into the slot.
+```
+uart:~$ sd status
+The SD mux is set to FPGA
+CD_DET = 0
+```
+Your computer will not show a new removable drive for the uSD card.
+```
+uart:~$ sd off
+```
+Physically eject the card.
+
+## System Monitor
+
+The System Monitor reads several different voltages on the Chameleon and
+can provide a human-readable summary of the various voltages and the current
+monitors.
+
+The command `sysmon` prints a list of the various voltages being monitored:
+
+```
+uart:~$ sysmon
+12V: 12.242871
+CMON_SOM: 0.294067
+CMON_BOARD: 0.235254
+PP1200: 1.217358
+PP1360: 1.372046
+PP1260: 1.280200
+PP1000: 1.005469
+VMON_9V: 9.174902
+VMON_5V: 4.908105
+VMON_3V3: 3.232727
+PP1800: 1.813550
+SOM_VMON: 1.527539
+SOM_VMON_1V2: 1.959375
+SOM_VMON_MGT: 1.735400
+SOM_VMON_1V8A: 1.886865
+SOM_VMON_C8: 1.913452
+SOM_VREF_CS: 0.001611
+```
+
+The SOM_VMON voltages will not be accurate unless the FPGA SOM is installed
+and its power supplies are enabled. In this example, the FPGA SOM is not
+installed.
+
+Note that on proto0, the current monitors (CMON_SOM and CMON_BOARD) are not
+accurate due to a parts issue.
