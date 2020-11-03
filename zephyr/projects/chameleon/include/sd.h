@@ -43,16 +43,4 @@ enum sd_state sd_mux_get(void);
  */
 int sd_get_cd_det(void);
 
-/**
- * @brief Initialize the SD mux GPIOs to a disconnected state
- *
- * The SD mux controls whether the SD card signals are connected, and
- * if they are connected, whether to the FPGA or the USB controller.
- * Set up the GPIOs and then set the mux to disconnected.
- *
- * @retval 0 if successful.
- * @retval -ENODEV or error return from Zephyr API functions.
- */
-int sd_mux_init(void);
-
 #endif

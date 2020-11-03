@@ -83,8 +83,17 @@ int sd_get_cd_det(void)
 	return gpio_pin_get(GPIO_LOOKUP(sd_mux, usd_cd_det));
 }
 
-int sd_mux_init(void)
+/**
+ * @brief Initialize the SD mux GPIOs to a disconnected state
+ *
+ * The SD mux controls whether the SD card signals are connected, and
+ * if they are connected, whether to the FPGA or the USB controller.
+ * Set up the GPIOs and then set the mux to disconnected.
+ */
+static int sd_mux_init(const struct device *ptr)
 {
+	ARG_UNUSED(ptr);
+
 	int ret;
 
 	ret = gpio_pin_configure(GPIO_LOOKUP(sd_mux, sd_mux_sel), GPIO_OUTPUT);
@@ -123,6 +132,7 @@ int sd_mux_init(void)
 
 	return sd_mux_set(SD_MUX_OFF);
 }
+SYS_INIT(sd_mux_init, APPLICATION, 90);
 
 /**
  * @brief Handle the "sd off/fpga/usb" shell commands.

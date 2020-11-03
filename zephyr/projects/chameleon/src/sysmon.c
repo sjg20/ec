@@ -366,21 +366,18 @@ float sysmon_get_val(enum sysmon_input input)
 	return val;
 }
 
-int sysmon_init(void)
+/** @brief Initialize the system monitor
+ *
+ * sysmon is responsible for reading several ADC channels to monitor
+ * the supply current and voltages. There are more voltages to monitor
+ * than ADC input pins, so there are are analog switches to select which
+ * sets of voltages is connected to the ADC inputs. sysmon needs to
+ * initialize a GPIO to control the analog switches in addition to
+ * intializing the ADCs to sample inputs.
+ */
+static int sysmon_init(const struct device *ptr)
 {
-	/*
-	 * Do not allow more than one call to sysmon_init.
-	 * The main problem with calling it more than once is that each
-	 * thread created here will wind up using the same area of memory
-	 * for a stack. They also will expect to have exclusive control
-	 * over the SYSMON_SEL signal, and if one thread changes it to
-	 * a value that the other thread doesn't think is active, the
-	 * wrong signals will be read into the adc_readinds[] array.
-	 */
-	static bool initted;
-
-	__ASSERT(!initted, "sysmon_init called more than once");
-	initted = true;
+	ARG_UNUSED(ptr);
 
 	int ret = 0;
 
@@ -420,6 +417,7 @@ int sysmon_init(void)
 
 	return ret;
 }
+SYS_INIT(sysmon_init, APPLICATION, 50);
 
 /**
  * @brief Display all of the monitored values in a friendly format
