@@ -11,6 +11,8 @@ menuconfig CROS_EC
 
 if CROS_EC
 
+rsource "soc/Kconfig"
+
 choice
 	prompt "ChromeOS EC firmware section"
 
