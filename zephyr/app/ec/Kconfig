@@ -79,4 +79,12 @@ config CROS_EC_RW_SIZE
 		This will be used (along with SYSTEM_RW_MEM_OFF) to determine if the
 		current PC is in the RW section.
 
+config SHIMMED_TASKS
+	bool "Add support for shimming in platform/ec tasks as Zephyr threads"
+	help
+	  When this option is enabled, a shimmed_tasks.h header with the
+	  CROS_EC_TASK_LIST defined needs to be included for the project to
+	  build. The CROS_EC_TASK_LIST defines a list of CROS_EC_TASK that
+	  should be shimmed in.
+
 endif # CROS_EC
