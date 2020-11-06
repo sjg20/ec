@@ -16,6 +16,10 @@ void main(void)
 	printk("  BOARD=%s\n", CONFIG_BOARD);
 	printk("  ACTIVE_COPY=%s\n", CONFIG_CROS_EC_ACTIVE_COPY);
 
+	if (IS_ENABLED(HAS_TASK_KEYSCAN)) {
+		keyboard_scan_init();
+	}
+
 	if (IS_ENABLED(CONFIG_PLATFORM_EC_ESPI)) {
 		if (zephyr_shim_setup_espi() < 0) {
 			printk("Failed to init eSPI!\n");

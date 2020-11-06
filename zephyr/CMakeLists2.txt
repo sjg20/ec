@@ -7,4 +7,9 @@
 set(ZEPHYR_CHROME "${ZEPHYR_CURRENT_MODULE_DIR}" CACHE PATH
     "Path to the zephyr-chrome repository.")
 
+zephyr_include_directories(
+  include
+)
+
 add_subdirectory("app")
+add_subdirectory("drivers")
