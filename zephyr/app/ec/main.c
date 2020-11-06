@@ -6,9 +6,22 @@
 #include <sys/printk.h>
 #include <zephyr.h>
 
+#include "ec_tasks.h"
+#include "hooks.h"
+
 void main(void)
 {
 	printk("Hello from a Chrome EC!\n");
 	printk("  BOARD=%s\n", CONFIG_BOARD);
 	printk("  ACTIVE_COPY=%s\n", CONFIG_CROS_EC_ACTIVE_COPY);
+
+	/* Call init hooks before main tasks start */
+	if (IS_ENABLED(CONFIG_PLATFORM_EC_HOOKS)) {
+		hook_notify(HOOK_INIT);
+	}
+
+	/* Start the EC tasks after performing all main initialization */
+	if (IS_ENABLED(CONFIG_SHIMMED_TASKS)) {
+		start_ec_tasks();
+	}
 }
