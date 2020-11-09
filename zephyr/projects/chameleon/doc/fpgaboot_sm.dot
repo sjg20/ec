@@ -1,0 +1,20 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Copyright 2020 The Chromium OS Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ *
+ * Graphviz "dot" source for the state machine diagram.
+ */
+
+digraph fpga_sm {
+	node [shape = circle];
+
+	INIT -> OFF [label = "/ SOM_PWR_EN := 0\n/ SOM_POR_L_LOAD_L := 0"];
+	OFF -> PWR_GOOD [label = "power on req\n/ PWR_EN := 1\n/ start short timer"];
+	PWR_GOOD -> LOAD [label = "PWR_GOOD == 1\n/ SOM_POR_L_LOAD_L := 1\n/start long timer"];
+	PWR_GOOD -> OFF [label = "timeout || power off req\n/ SOM_PWR_EN := 0\n/ SOM_POR_L_LOAD_L := 0\n/ stop timer"];
+	LOAD -> RUNNING [label ="DONE == 1\n/ stop timer"];
+	LOAD -> OFF [label = "timeout || power off req || PWR_GOOD == 0\n/ SOM_PWR_EN := 0\n/ SOM_POR_L_LOAD_L := 0\n/ stop timer"];
+	RUNNING -> OFF [label = "power off req || PWR_GOOD == 0\n/ SOM_PWR_EN := 0\n/ SOM_POR_L_LOAD_L := 0"];
+}
