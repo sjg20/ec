@@ -68,6 +68,40 @@
 		};
 	};
 
+	fpga {
+		compatible = "gpio-keys";
+
+		pwr_en {
+			gpios = <&gpioc 7 0>;
+			label = "SOM_PWR_EN";
+		};
+
+		pwr_good {
+			gpios = <&gpioc 8 0>;
+			label = "SOM_PWR_GOOD";
+		};
+
+		boot_mode1 {
+			gpios = <&gpiod 1 0>;
+			label = "SOM_BOOT_MODE1";
+		};
+
+		boot_mode0 {
+			gpios = <&gpiod 0 0>;
+			label = "SOM_BOOT_MODE0";
+		};
+
+		por_l_load_l {
+			gpios = <&gpiob 1 0>;
+			label = "SOM_POR_L_LOAD_L";
+		};
+
+		fpga_done {
+			gpios = <&gpiob 0 0>;
+			label = "SOM_FPGA_DONE";
+		};
+	};
+
 };
 
 &usart1 {

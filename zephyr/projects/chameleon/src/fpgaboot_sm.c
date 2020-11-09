@@ -10,7 +10,7 @@
 #include <sys/__assert.h>
 #include "fpgaboot_sm.h"
 
-static void run_fpgaboot_init(enum fpga_state *p_state, enum fpga_event event,
+static void run_fpgaboot_init(enum fpga_event event, enum fpga_state *p_state,
 			      uint32_t *p_actions)
 {
 	*p_state = FPGABOOT_OFF;
@@ -18,7 +18,7 @@ static void run_fpgaboot_init(enum fpga_state *p_state, enum fpga_event event,
 		     FPGABOOT_ASSERT_SOM_POR_L_LOAD_L;
 }
 
-static void run_fpgaboot_off(enum fpga_state *p_state, enum fpga_event event,
+static void run_fpgaboot_off(enum fpga_event event, enum fpga_state *p_state,
 			     uint32_t *p_actions)
 {
 	if (event == FPGABOOT_POWER_ON_REQ) {
@@ -28,8 +28,8 @@ static void run_fpgaboot_off(enum fpga_state *p_state, enum fpga_event event,
 	}
 }
 
-static void run_fpgaboot_pwr_good(enum fpga_state *p_state,
-				  enum fpga_event event, uint32_t *p_actions)
+static void run_fpgaboot_pwr_good(enum fpga_event event,
+				  enum fpga_state *p_state, uint32_t *p_actions)
 {
 	if (event == FPGABOOT_POWER_OFF_REQ ||
 	    event == FPGABOOT_TIMER_EXPIRED) {
@@ -44,7 +44,7 @@ static void run_fpgaboot_pwr_good(enum fpga_state *p_state,
 	}
 }
 
-static void run_fpgaboot_load(enum fpga_state *p_state, enum fpga_event event,
+static void run_fpgaboot_load(enum fpga_event event, enum fpga_state *p_state,
 			      uint32_t *p_actions)
 {
 	if (event == FPGABOOT_POWER_OFF_REQ ||
@@ -60,8 +60,8 @@ static void run_fpgaboot_load(enum fpga_state *p_state, enum fpga_event event,
 	}
 }
 
-static void run_fpgaboot_running(enum fpga_state *p_state,
-				 enum fpga_event event, uint32_t *p_actions)
+static void run_fpgaboot_running(enum fpga_event event,
+				 enum fpga_state *p_state, uint32_t *p_actions)
 {
 	if (event == FPGABOOT_POWER_OFF_REQ ||
 	    event == FPGABOOT_SOM_PWR_GOOD_DEASSERTED) {
@@ -78,10 +78,10 @@ void fpgaboot_init_state_machine(enum fpga_state *p_state, uint32_t *p_actions)
 
 	*p_state = FPGABOOT_INIT;
 	/* Run the state machine to get from INIT to OFF. */
-	fpgaboot_run_state_machine(p_state, FPGABOOT_EVENT_NONE, p_actions);
+	fpgaboot_run_state_machine(FPGABOOT_EVENT_NONE, p_state, p_actions);
 }
 
-void fpgaboot_run_state_machine(enum fpga_state *p_state, enum fpga_event event,
+void fpgaboot_run_state_machine(enum fpga_event event, enum fpga_state *p_state,
 				uint32_t *p_actions)
 {
 	__ASSERT(p_state != NULL, "NULL pointer");
@@ -90,19 +90,19 @@ void fpgaboot_run_state_machine(enum fpga_state *p_state, enum fpga_event event,
 	*p_actions = 0;
 	switch (*p_state) {
 	case FPGABOOT_INIT:
-		run_fpgaboot_init(p_state, event, p_actions);
+		run_fpgaboot_init(event, p_state, p_actions);
 		break;
 	case FPGABOOT_OFF:
-		run_fpgaboot_off(p_state, event, p_actions);
+		run_fpgaboot_off(event, p_state, p_actions);
 		break;
 	case FPGABOOT_PWR_GOOD:
-		run_fpgaboot_pwr_good(p_state, event, p_actions);
+		run_fpgaboot_pwr_good(event, p_state, p_actions);
 		break;
 	case FPGABOOT_LOAD:
-		run_fpgaboot_load(p_state, event, p_actions);
+		run_fpgaboot_load(event, p_state, p_actions);
 		break;
 	case FPGABOOT_RUNNING:
-		run_fpgaboot_running(p_state, event, p_actions);
+		run_fpgaboot_running(event, p_state, p_actions);
 		break;
 	default:
 		__ASSERT(false, "Invalid state");

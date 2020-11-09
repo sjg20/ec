@@ -268,3 +268,71 @@ The clock output can be verified with an oscilloscope and either a very steady
 hand or some short wires to attach probes. When the board is in reset, the
 clock output is idle, but as soon as the `SYS_INIT` function runs, the clock
 output changes to a 100 MHz signal.
+
+## FPGA power/boot sequence
+
+The STM32 controls the power enable and power-on-reset for the FPGA, and
+monitors the signals for power good and configuration done. With an FPGA
+module installed, the FPGA module power good LED (on proto0 this is D21,
+just to the right and above the PCIe connector) will briefly turn on and
+then off again as the STM32 asserts control over the signal.
+[Chameleon FPGA Power/Boot Sequence State Machine](./fpgaboot_sm.md)
+provides details of the state machine.
+
+The shell provides the `fpga` command, which has three subcommands:
+* `on` to start the power-on and boot sequence for the FPGA module
+* `off` to turn off the FPGA module immediately
+* `status` to report status
+* `bootmode` to set the bootmode to `emmc`, `qspi`, or `sdio`
+
+A new FPGA module will not have a bitstream on it, so a failure to reach
+the power-on state is expected behavior.
+
+* Remove power from the Chameleon v3
+* Install the FPGA module
+* Apply power
+* Open the serial console
+* Set the boot mode and query the status
+```
+$ fpga bootmode qspi
+FPGA boot mode set to qspi
+$ fpga status
+FPGA steady status: true
+BOOT_MODE = 01
+PWR_EN = 0
+PWR_GOOD = 0
+POR_L_LOAD_L = 0
+FPGA_DONE = 0
+```
+* Start the power-on and boot sequence
+```
+$ fpga on
+FPGA power on ...
+```
+* The PWR_GOOD LED (leftmost, closest to the PCIe connector) will turn on.
+* Set the boot mode. It should fail
+```
+$ fpga bootmode emmc
+FPGA is busy. Try again in a few seconds.
+$ fpga status
+FPGA steady status: false
+BOOT_MODE = 01
+PWR_EN = 1
+PWR_GOOD = 1
+POR_L_LOAD_L = 1
+FPGA_DONE = 0
+```
+* After 10 seconds, the PWR_GOOD LED will turn off; the state machine didn't see
+FPGA_DONE assert (because there is no bitstream on the FPGA), so it turned off
+power.
+* Query the status again
+```
+$ fpga status
+FPGA steady status: true
+BOOT_MODE = 01
+PWR_EN = 0
+PWR_GOOD = 0
+POR_L_LOAD_L = 0
+FPGA_DONE = 0
+$
+```

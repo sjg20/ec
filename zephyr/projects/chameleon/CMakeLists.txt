@@ -10,11 +10,6 @@ set(BOARD chameleon)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(chameleon)
 
+FILE(GLOB app_sources src/*.c)
 target_include_directories(app PRIVATE include)
-target_sources(app PRIVATE
-	src/main.c
-	src/led.c
-	src/sysmon.c
-	src/sd.c
-	src/si5338.c
-)
+target_sources(app PRIVATE ${app_sources})

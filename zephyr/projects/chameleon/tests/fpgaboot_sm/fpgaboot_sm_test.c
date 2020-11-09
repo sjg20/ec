@@ -29,7 +29,7 @@ static void power_on(enum fpga_state *p_state)
 {
 	uint32_t actions;
 
-	fpgaboot_run_state_machine(p_state, FPGABOOT_POWER_ON_REQ, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_POWER_ON_REQ, p_state, &actions);
 	zassert_equal(actions,
 		      FPGABOOT_ASSERT_SOM_PWR_EN | FPGABOOT_START_SHORT_TIMER,
 		      "state=%d, actions=%d\n", *p_state, actions);
@@ -39,7 +39,7 @@ static void power_good(enum fpga_state *p_state)
 {
 	uint32_t actions;
 
-	fpgaboot_run_state_machine(p_state, FPGABOOT_SOM_PWR_GOOD_ASSERTED,
+	fpgaboot_run_state_machine(FPGABOOT_SOM_PWR_GOOD_ASSERTED, p_state,
 				   &actions);
 	zassert_equal(actions,
 		      FPGABOOT_DEASSERT_SOM_POR_L_LOAD_L |
@@ -51,7 +51,7 @@ static void fpga_done(enum fpga_state *p_state)
 {
 	uint32_t actions;
 
-	fpgaboot_run_state_machine(p_state, FPGABOOT_SOM_FPGA_DONE_ASSERTED,
+	fpgaboot_run_state_machine(FPGABOOT_SOM_FPGA_DONE_ASSERTED, p_state,
 				   &actions);
 	zassert_equal(actions, FPGABOOT_STOP_TIMER, "state=%d, actions=%d\n",
 		      *p_state, actions);
@@ -61,7 +61,7 @@ static void power_off(enum fpga_state *p_state)
 {
 	uint32_t actions;
 
-	fpgaboot_run_state_machine(p_state, FPGABOOT_POWER_OFF_REQ, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_POWER_OFF_REQ, p_state, &actions);
 	zassert_equal(actions,
 		      FPGABOOT_DEASSERT_SOM_PWR_EN |
 			      FPGABOOT_ASSERT_SOM_POR_L_LOAD_L,
@@ -72,7 +72,7 @@ static void power_off_stop_timer(enum fpga_state *p_state)
 {
 	uint32_t actions;
 
-	fpgaboot_run_state_machine(p_state, FPGABOOT_POWER_OFF_REQ, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_POWER_OFF_REQ, p_state, &actions);
 	zassert_equal(actions,
 		      FPGABOOT_DEASSERT_SOM_PWR_EN |
 			      FPGABOOT_ASSERT_SOM_POR_L_LOAD_L |
@@ -84,7 +84,7 @@ static void timeout(enum fpga_state *p_state)
 {
 	uint32_t actions;
 
-	fpgaboot_run_state_machine(p_state, FPGABOOT_TIMER_EXPIRED, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_TIMER_EXPIRED, p_state, &actions);
 	zassert_equal(actions,
 		      FPGABOOT_DEASSERT_SOM_PWR_EN |
 			      FPGABOOT_ASSERT_SOM_POR_L_LOAD_L |
@@ -128,10 +128,10 @@ void test_power_off_from_running(void)
 	 * PWR_GOOD and DONE will de-assert when power is disabled. The state
 	 * machine should do nothing about either event.
 	 */
-	fpgaboot_run_state_machine(&state, FPGABOOT_SOM_PWR_GOOD_DEASSERTED,
+	fpgaboot_run_state_machine(FPGABOOT_SOM_PWR_GOOD_DEASSERTED, &state,
 				   &actions);
 	zassert_equal(actions, 0, "state=%d, actions=%d\n", state, actions);
-	fpgaboot_run_state_machine(&state, FPGABOOT_SOM_FPGA_DONE_DEASSERTED,
+	fpgaboot_run_state_machine(FPGABOOT_SOM_FPGA_DONE_DEASSERTED, &state,
 				   &actions);
 	zassert_equal(actions, 0, "state=%d, actions=%d\n", state, actions);
 }
@@ -202,7 +202,7 @@ void test_power_off_while_off(void)
 	uint32_t actions;
 
 	init(&state);
-	fpgaboot_run_state_machine(&state, FPGABOOT_POWER_OFF_REQ, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_POWER_OFF_REQ, &state, &actions);
 	zassert_equal(actions, 0, "state=%d, actions=%d\n", state, actions);
 
 	zassert_true(fpgaboot_is_steady_state(state), "state=%d\n", state);
@@ -216,7 +216,7 @@ void test_power_on_while_waiting_for_power_good(void)
 	init(&state);
 	power_on(&state);
 	/* Send another power on request. It should do nothing. */
-	fpgaboot_run_state_machine(&state, FPGABOOT_POWER_ON_REQ, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_POWER_ON_REQ, &state, &actions);
 	zassert_equal(actions, 0, "state=%d, actions=%d\n", state, actions);
 }
 
@@ -229,7 +229,7 @@ void test_power_on_while_waiting_for_done(void)
 	power_on(&state);
 	power_good(&state);
 	/* Send another power on request. It should do nothing. */
-	fpgaboot_run_state_machine(&state, FPGABOOT_POWER_ON_REQ, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_POWER_ON_REQ, &state, &actions);
 	zassert_equal(actions, 0, "state=%d, actions=%d\n", state, actions);
 }
 
@@ -246,7 +246,7 @@ void test_power_on_while_running(void)
 	zassert_true(fpgaboot_is_steady_state(state), "state=%d\n", state);
 
 	/* Send another power on request. It should do nothing. */
-	fpgaboot_run_state_machine(&state, FPGABOOT_POWER_ON_REQ, &actions);
+	fpgaboot_run_state_machine(FPGABOOT_POWER_ON_REQ, &state, &actions);
 	zassert_equal(actions, 0, "state=%d, actions=%d\n", state, actions);
 }
 
@@ -259,7 +259,7 @@ void test_power_good_deassert_while_loading(void)
 	power_on(&state);
 	power_good(&state);
 	/* Now, before DONE asserts, have PWR_GOOD deassert. */
-	fpgaboot_run_state_machine(&state, FPGABOOT_SOM_PWR_GOOD_DEASSERTED,
+	fpgaboot_run_state_machine(FPGABOOT_SOM_PWR_GOOD_DEASSERTED, &state,
 				   &actions);
 	/* It should turn everything off and stop the timer. */
 	zassert_equal(actions,
@@ -282,7 +282,7 @@ void test_power_good_deassert_while_running(void)
 	zassert_true(fpgaboot_is_steady_state(state), "state=%d\n", state);
 
 	/* Send an event that PWR_GOOD has deasserted. */
-	fpgaboot_run_state_machine(&state, FPGABOOT_SOM_PWR_GOOD_DEASSERTED,
+	fpgaboot_run_state_machine(FPGABOOT_SOM_PWR_GOOD_DEASSERTED, &state,
 				   &actions);
 	/*
 	 * It should turn everything off. The timer already stopped when we

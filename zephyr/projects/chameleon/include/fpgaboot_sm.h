@@ -48,7 +48,7 @@ enum fpga_event {
  * @brief Initialize the state machine data
  *
  * @param p_state pointer to an `fpga_state` variable
- * @param p_actions pointer to variable to set bit flags for actions.
+ * @param[out] p_actions pointer to variable to set bit flags for actions.
  */
 void fpgaboot_init_state_machine(enum fpga_state *p_state, uint32_t *p_actions);
 
@@ -59,19 +59,21 @@ void fpgaboot_init_state_machine(enum fpga_state *p_state, uint32_t *p_actions);
  * The state machine may change `*p_state` and set one or more bits in
  * `*p_actions` to indicate what the caller should do next.
  *
- * @param p_state pointer to an `fpga_state` variable
  * @param event the event being processed
- * @param p_actions pointer to variable to set bit flags for actions.
+ * @param[inout] p_state pointer to an `fpga_state` variable
+ * @param[out] p_actions pointer to variable to set bit flags for actions.
  */
-void fpgaboot_run_state_machine(enum fpga_state *p_state, enum fpga_event event,
+void fpgaboot_run_state_machine(enum fpga_event event, enum fpga_state *p_state,
 				uint32_t *p_actions);
 
 /**
  * @brief Determine if the FPGA is in a steady state, on or off
  *
  * @param state an `fpga_state` variable
- * @retval true if the FPGA is either on or off, false if it's in a
- * different state moving towards either on or off.
+ * @retval true
+ * if the FPGA is either on or off
+ * @retval false
+ * if the FPGA is in a different state moving towards either on or off
  */
 bool fpgaboot_is_steady_state(enum fpga_state state);
 
