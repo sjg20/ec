@@ -3,4 +3,4 @@ supported-zephyr-versions:
   - v2.3
   - v2.4
 output-type: elf
-toolchain: llvm
+toolchain: zephyr
