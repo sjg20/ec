@@ -18,6 +18,12 @@
 DECLARE_GPIOS_FOR(sysmon);
 
 /**
+ * Define the interval for the sysmon timer. Every SYSMON_INTERVAL, the
+ * sysmon task will read the next ADC input in the sequence.
+ */
+#define SYSMON_INTERVAL K_MSEC(100)
+
+/**
  * @brief Input selection for the analog switches.
  */
 enum sysmon_sel {
@@ -215,6 +221,30 @@ K_THREAD_STACK_DEFINE(sysmon_stack_area, SYSMON_STACK_SIZE);
  */
 static struct k_thread sysmon_thread_data;
 
+/**
+ * Binary semaphore to let the sysmon task wait for the next timer tick
+ *
+ * The timer handler will signal this semaphone, and the the sysmon task
+ * will wait on it. Every time the timer event handles, the sysmon task
+ * will get unblocked and sample another ADC input.
+ */
+K_SEM_DEFINE(sysmon_sem, 0, 1);
+
+/**
+ * Timer handler to signal sysmon to sample another ADC input
+ *
+ * Note that we don't care if the semaphone has already been signaled; it
+ * is a binary semaphore, so internally the kernel will just ignore the
+ * extra give.
+ */
+void sysmon_timer_handler(struct k_timer *dummy)
+{
+	ARG_UNUSED(dummy);
+
+	k_sem_give(&sysmon_sem);
+}
+K_TIMER_DEFINE(sysmon_timer, sysmon_timer_handler, NULL);
+
 /** @brief Select which set of voltages SYSMON can read
  *
  * There are more voltages to monitor than ADC inputs, so the hardware
@@ -309,12 +339,10 @@ static void sysmon_task(void *unused1, void *unused2, void *unused3)
 		 */
 
 		/*
-		 * Add a delay before moving to the next channel, so we
-		 * don't starve the system. 50ms was an ad-hoc choice, and
-		 * is subject to adjustment as more tasks are added to
-		 * the system.
+		 * Wait for the timer to signal the semaphore, so we don't
+		 * starve the system.
 		 */
-		k_sleep(K_MSEC(50));
+		k_sem_take(&sysmon_sem, K_FOREVER);
 		/* Move to the next channel */
 		idx++;
 		if (idx >= (int)SYSMON_VMON_NUM_INPUTS) {
@@ -415,6 +443,8 @@ static int sysmon_init(const struct device *ptr)
 			K_THREAD_STACK_SIZEOF(sysmon_stack_area), sysmon_task,
 			NULL, NULL, NULL, SYSMON_PRIORITY, 0, K_NO_WAIT);
 
+	/* Start the periodic timer for sysmon */
+	k_timer_start(&sysmon_timer, SYSMON_INTERVAL, SYSMON_INTERVAL);
 	return ret;
 }
 SYS_INIT(sysmon_init, APPLICATION, 50);

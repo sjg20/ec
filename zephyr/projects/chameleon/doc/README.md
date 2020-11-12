@@ -207,6 +207,50 @@ installed.
 Note that on proto0, the current monitors (CMON_SOM and CMON_BOARD) are not
 accurate due to a parts issue.
 
+Because of the use of a timer to drive the sampling sequence, you can get
+zero values if you run the `sysmon` command soon after start-up:
+```
+sysmon
+12V: 12.091406
+CMON_SOM: 0.275537
+CMON_BOARD: 0.229614
+PP1200: 1.207690
+PP1360: 1.374463
+PP1260: 1.304370
+PP1000: 1.030444
+VMON_9V: 9.139453
+VMON_5V: 5.017676
+VMON_3V3: 3.295569
+PP1800: 1.774878
+SOM_VMON: 0.000000
+SOM_VMON_1V2: 0.000000
+SOM_VMON_MGT: 0.000000
+SOM_VMON_1V8A: 0.000000
+SOM_VMON_C8: 0.000000
+SOM_VREF_CS: 0.000000
+```
+Even a second later, all of the values are non-zero:
+```
+$ sysmon
+12V: 12.117188
+CMON_SOM: 0.281177
+CMON_BOARD: 0.248145
+PP1200: 1.200439
+PP1360: 1.374463
+PP1260: 1.304370
+PP1000: 1.030444
+VMON_9V: 9.139453
+VMON_5V: 5.017676
+VMON_3V3: 3.295569
+PP1800: 1.774878
+SOM_VMON: 1.290674
+SOM_VMON_1V2: 1.688672
+SOM_VMON_MGT: 1.513843
+SOM_VMON_1V8A: 1.596020
+SOM_VMON_C8: 1.546875
+SOM_VREF_CS: 0.001611
+```
+
 ## Clock Generator
 
 The Si5338 clock generator chip provides a 100 MHz clock to the FPGA SOM.
