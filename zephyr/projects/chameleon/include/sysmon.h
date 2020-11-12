@@ -52,7 +52,7 @@ enum sysmon_input {
  * to the range of the actual signal.
  *
  * @param input Which of the monitored inputs to return the value.
- * @retval The value of the monitored input.
+ * @return The value of the monitored input.
  */
 float sysmon_get_val(enum sysmon_input input);
 

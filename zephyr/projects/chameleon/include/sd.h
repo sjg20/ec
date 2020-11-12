@@ -38,8 +38,9 @@ enum sd_state sd_mux_get(void);
 /**
  * @brief Return the state of the SD's CD_DET signal.
  *
- * @retval 0 if the SD card is inserted, 1 if not, negative value of
- * an errno.h constant if there was a failure.
+ * @retval 0 if the SD card is inserted
+ * @retval 1 if the SD card is not inserted
+ * @retval negative errno value if there was a failure
  */
 int sd_get_cd_det(void);
 

@@ -42,7 +42,7 @@
  * @param i2c_dev Device pointer for the I2C device
  * @param addr Register address
  *
- * @retval The value from the register
+ * @return The value from the register
  */
 static uint8_t si5338_read(const struct device *i2c_dev, uint8_t addr)
 {
