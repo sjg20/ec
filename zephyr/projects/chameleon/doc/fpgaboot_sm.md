@@ -23,7 +23,7 @@ GPIOs are involved:
 The state machine manages the sequence of signals needed to power on the
 FPGA and start its boot process, or to power down the FPGA.
 
-![State Machine](images/fpga_sm.png "FPGA Power/Boot State Machine")
+![State Machine](images/fpgaboot_sm.png "FPGA Power/Boot State Machine")
 
 Note that the boot mode is not specified in the state machine diagram; these
 values are set outside the state machine.
@@ -33,7 +33,7 @@ values are set outside the state machine.
 The state machine is implemented as a function that takes a pointer to a
 state variable, an event, and an output pointer for actions to take.
 ```
-void fpga_run_state_machine(enum fpga_state *state, const enum fpga_event event, uint32 *actions_out);
+void fpgaboot_run_state_machine(const enum fpga_event event, enum fpga_state *state, uint32 *actions_out);
 ```
 The function may change the `state` variable, and will change the `actions_out`
 variable.
