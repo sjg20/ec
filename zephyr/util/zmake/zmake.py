@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 """Module encapsulating Zmake wrapper object."""
+import os
 import pathlib
 import shutil
 import subprocess
@@ -128,6 +129,36 @@ class Zmake:
             if not d.exists():
                 d.mkdir()
 
+        output_files = []
         for output_file, output_name in project.packer.pack_firmware(
                 packer_work_dir, self.jobserver, **dirs):
             shutil.copy2(output_file, output_dir / output_name)
+            output_files.append(output_file)
+
+        return output_files
+
+    def test(self, build_dir):
+        """Test a build directory."""
+        procs = []
+        output_files = self.build(build_dir)
+        max_output_file_name_length = max(len(file.name) for file in output_files)
+
+        for output_file in output_files:
+            procs.append(self.jobserver.popen(
+                [output_file],
+                claim_job=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                encoding='utf-8',
+                errors='replace'))
+
+        for idx, proc in enumerate(procs):
+            rv = proc.wait()
+            if rv != 0:
+                raise OSError(
+                    "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
+                        util.repr_command(proc.args), rv, proc.stdout.read()))
+            else:
+                print("Execution of {fname: <{fname_width}}... SUCCESS".format(
+                    fname=output_files[idx].name,
+                    fname_width=max_output_file_name_length + 4))

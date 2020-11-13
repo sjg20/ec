@@ -73,6 +73,10 @@ def main(argv=None):
     build.add_argument('build_dir', type=pathlib.Path,
                        help='The build directory used during configuration')
 
+    test = sub.add_parser('test')
+    test.add_argument('build_dir', type=pathlib.Path,
+                      help='The build directory used during configuration')
+
     opts = parser.parse_args(argv)
 
     zmake = call_with_namespace(zm.Zmake, opts)
