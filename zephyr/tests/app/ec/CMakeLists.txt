@@ -4,8 +4,9 @@
 
 cmake_minimum_required(VERSION 3.13.1)
 
-find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+set(BOARD native_posix)
 project(system_test)
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 FILE(GLOB app_sources *.c)
 target_sources(app PRIVATE ${app_sources})
