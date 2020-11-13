@@ -102,6 +102,34 @@
 		};
 	};
 
+	misc {
+		compatible = "gpio-keys";
+
+		tp126 {
+			gpios = <&u78 11 0>;
+			label = "TP126";
+		};
+
+		tp125 {
+			gpios = <&u78 12 0>;
+			label = "TP125";
+		};
+
+		board_version_2 {
+			gpios = <&u78 13 0>;
+			label = "BOARD_VERSION_2";
+		};
+
+		board_version_1 {
+			gpios = <&u78 14 0>;
+			label = "BOARD_VERSION_1";
+		};
+
+		board_version_0 {
+			gpios = <&u78 15 0>;
+			label = "BOARD_VERSION_0";
+		};
+	};
 };
 
 &usart1 {
@@ -134,6 +162,15 @@
 
 &i2c2 {
 	status = "okay";
+
+	/* U78 I/O expander, DP1 OUT config signals, plus misc I/O */
+	u78: pca95xx@21 {
+		compatible = "nxp,pca95xx";
+		label = "PCA95XX";
+		reg = <0x21>;
+		#gpio-cells = <2>;
+		gpio-controller;
+	};
 };
 
 &adc1 {

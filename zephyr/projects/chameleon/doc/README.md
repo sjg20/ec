@@ -336,3 +336,44 @@ POR_L_LOAD_L = 0
 FPGA_DONE = 0
 $
 ```
+
+## I/O expanders
+
+The Chameleon v3 has three 16-bit I/O expanders on I2C2. The signals connected
+to these I/O expanders are one-time configuration signals, operational mode
+and reset signals that are changed very infrequently, or fixed signals for
+board identification.
+
+The `misc_io` module exposes an API to read the three BOARD_VERSION signals
+as an integer. It also provides debugging commands in the shell to read the
+BOARD_VERSION signals, and to read and write two debug signals that are
+connected to TP125 and TP126.
+
+After programming the latest firmware, experiment with these commands in the
+shell:
+
+```
+$ io get ver
+ver = 0
+$ io get tp125
+tp125 = 0
+$ io get tp126
+tp126 = 0
+$ io set tp125 on
+$ io get tp125
+tp125 = 1
+$ io set tp126 on
+$ io get tp126
+tp126 = 1
+$ io set tp125 off
+$ io get tp125
+tp125 = 0
+$ io set tp126 off
+$ io get tp126
+tp126 = 0
+```
+
+If you hook up a logic analyzer to I2C2 SCL and SDA, TP125, and TP126, you can
+see the I2C bus transactions between the STM32 and U78 (which has device
+address 0x21) to read and write the individual bits, as well as watching TP125
+and TP126 change when they are written.

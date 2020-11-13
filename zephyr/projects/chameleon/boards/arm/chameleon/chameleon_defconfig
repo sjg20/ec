@@ -46,3 +46,6 @@ CONFIG_ADC_SHELL=n
 
 # I2C
 CONFIG_I2C=y
+
+# PCA95xx-compatible I2C I/O expanders
+CONFIG_GPIO_PCA95XX=y
