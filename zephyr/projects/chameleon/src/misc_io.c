@@ -19,54 +19,6 @@
 
 DECLARE_GPIOS_FOR(misc);
 
-/**
- * @brief Set up the misc I/O pins
- *
- * TP125 and TP126 are set up as outputs that could be connected to a
- * scope or logic analyzer for extra debugging help.
- * BOARD_VERSION[2:0] are set up as inputs.
- *
- * @param ptr Provided by the SYS_INIT API, unused here.
- */
-static int misc_io_init(const struct device *ptr)
-{
-	ARG_UNUSED(ptr);
-
-	int ret;
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(misc, tp126), GPIO_OUTPUT_LOW);
-	if (ret < 0) {
-		printk("gpio_pin_configure(tp126) failed, ret = %d\n", ret);
-		return ret;
-	}
-	ret = gpio_pin_configure(GPIO_LOOKUP(misc, tp125), GPIO_OUTPUT_LOW);
-	if (ret < 0) {
-		printk("gpio_pin_configure(tp125) failed, ret = %d\n", ret);
-		return ret;
-	}
-	ret = gpio_pin_configure(GPIO_LOOKUP(misc, board_version_2),
-				 GPIO_INPUT);
-	if (ret < 0) {
-		printk("gpio_set(board_version_2) failed, ret = %d\n", ret);
-		return ret;
-	}
-	ret = gpio_pin_configure(GPIO_LOOKUP(misc, board_version_1),
-				 GPIO_INPUT);
-	if (ret < 0) {
-		printk("gpio_set(board_version_1) failed, ret = %d\n", ret);
-		return ret;
-	}
-	ret = gpio_pin_configure(GPIO_LOOKUP(misc, board_version_0),
-				 GPIO_INPUT);
-	if (ret < 0) {
-		printk("gpio_set(board_version_0) failed, ret = %d\n", ret);
-		return ret;
-	}
-
-	return 0;
-}
-SYS_INIT(misc_io_init, APPLICATION, 75);
-
 int misc_io_get_board_version(void)
 {
 	int version;

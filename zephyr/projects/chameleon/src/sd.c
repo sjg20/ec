@@ -94,42 +94,6 @@ static int sd_mux_init(const struct device *ptr)
 {
 	ARG_UNUSED(ptr);
 
-	int ret;
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(sd_mux, sd_mux_sel), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(sd_mux_sel) failed, ret = %d\n",
-		       ret);
-		return ret;
-	}
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(sd_mux, sd_mux_en_l), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(sd_mux_en_l) failed, ret = %d\n",
-		       ret);
-		return ret;
-	}
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(sd_mux, usd_pwr_sel), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(usd_pwr_sel) failed, ret = %d\n",
-		       ret);
-		return ret;
-	}
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(sd_mux, usd_pwr_en), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(usd_pwr_en) failed, ret = %d\n",
-		       ret);
-		return ret;
-	}
-	ret = gpio_pin_configure(GPIO_LOOKUP(sd_mux, usd_cd_det),
-				 GPIO_INPUT | GPIO_PULL_UP);
-	if (ret < 0) {
-		printk("gpio_set(usd_cd_det) failed, ret = %d\n", ret);
-		return ret;
-	}
-
 	return sd_mux_set(SD_MUX_OFF);
 }
 SYS_INIT(sd_mux_init, APPLICATION, 90);

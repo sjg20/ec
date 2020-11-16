@@ -234,45 +234,9 @@ static int fpgaboot_init(const struct device *ptr)
 
 	int ret;
 
-	ret = gpio_pin_configure(GPIO_LOOKUP(fpga, pwr_en), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(pwr_en) failed, ret = %d\n", ret);
-		return ret;
-	}
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(fpga, boot_mode1), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(boot_mode1) failed, ret = %d\n",
-		       ret);
-		return ret;
-	}
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(fpga, boot_mode0), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(boot_mode0) failed, ret = %d\n",
-		       ret);
-		return ret;
-	}
-	/*
-	 * With the BOOT_MODE[1:0] GPIOs configured, now set the default boot
-	 * mode to boot from the microSD card slot on the Chameleon v3 board.
-	 */
 	fpgaboot_set_boot_mode(FPGA_BOOT_SDIO);
 
-	ret = gpio_pin_configure(GPIO_LOOKUP(fpga, por_l_load_l), GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(por_l_load_l) failed, ret = %d\n",
-		       ret);
-		return ret;
-	}
-
-	/* Configure pwr_good as input, pull-up, interrupt on change. */
-	ret = gpio_pin_configure(GPIO_LOOKUP(fpga, pwr_good),
-				 GPIO_INPUT | GPIO_PULL_UP);
-	if (ret < 0) {
-		printk("gpio_set(pwr_good) failed, ret = %d\n", ret);
-		return ret;
-	}
+	/* Configure pwr_good interrupt on change. */
 	ret = gpio_pin_interrupt_configure(GPIO_LOOKUP(fpga, pwr_good),
 					   GPIO_INT_EDGE_BOTH);
 	if (ret != 0) {
@@ -285,13 +249,7 @@ static int fpgaboot_init(const struct device *ptr)
 	gpio_add_callback(gpio_devs[GPIO_ENUM(DT_PATH(fpga, pwr_good))],
 			  &pwr_good_cb_data);
 
-	/* Configure fpga_done as input, pull-up, interrupt on change. */
-	ret = gpio_pin_configure(GPIO_LOOKUP(fpga, fpga_done),
-				 GPIO_INPUT | GPIO_PULL_UP);
-	if (ret < 0) {
-		printk("gpio_set(fpga_done) failed, ret = %d\n", ret);
-		return ret;
-	}
+	/* Configure fpga_done interrupt on change. */
 	ret = gpio_pin_interrupt_configure(GPIO_LOOKUP(fpga, fpga_done),
 					   GPIO_INT_EDGE_BOTH);
 	if (ret != 0) {

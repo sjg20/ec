@@ -409,11 +409,6 @@ static int sysmon_init(const struct device *ptr)
 
 	int ret = 0;
 
-	ret = gpio_pin_configure(GPIO_LOOKUP(sysmon, sysmon_sel), GPIO_OUTPUT);
-	if (ret < 0) {
-		return ret;
-	}
-
 	/* Set the analog switches for the regulator outputs. */
 	ret = sysmon_sel(SYSMON_SEL_REGULATORS);
 	if (ret < 0) {

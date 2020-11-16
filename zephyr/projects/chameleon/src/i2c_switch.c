@@ -100,21 +100,8 @@ static int init_i2c_switch(const struct device *ptr)
 		return -ENODEV;
 	}
 
-	ret = gpio_pin_configure(GPIO_LOOKUP(i2c_switch, exp_reset),
-				 GPIO_OUTPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(exp_reset) failed, ret = %d\n", ret);
-		return ret;
-	}
-
 	i2c_switch_reset(RESET_DEASSERTED);
 	i2c_switch_select_bus(-1);
-
-	ret = gpio_pin_configure(GPIO_LOOKUP(i2c_switch, exp_irq), GPIO_INPUT);
-	if (ret < 0) {
-		printk("gpio_pin_configure(exp_irq) failed, ret = %d\n", ret);
-		return ret;
-	}
 
 	ret = gpio_pin_interrupt_configure(GPIO_LOOKUP(i2c_switch, exp_irq),
 					   GPIO_INT_EDGE_FALLING);

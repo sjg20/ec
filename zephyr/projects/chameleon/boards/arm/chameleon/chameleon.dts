@@ -1,15 +1,11 @@
 /* SPDX-License-Identifier: BSD-3-Clause
  *
  * Copyright (c) 2020 The Chromium OS Authors
- *
- * This file includes sections changes from PR #28335
- * (https://github.com/zephyrproject-rtos/zephyr/pull/28335).
- * When PR #28335 is merged, change the #include and delete the
- * included sections.
  */
 
 /dts-v1/;
 #include <st/f1/stm32f103Xg.dtsi>
+#include <../../../include/dt-bindings/gpio_defines.h>
 
 / {
 	model = "Google Chameleon";
@@ -24,8 +20,8 @@
 
 	leds {
 		compatible = "gpio-leds";
-		power_good_led: led {
-			gpios = <&gpiob 14 GPIO_ACTIVE_HIGH>;
+		power_good_led {
+			gpios = <&gpiob 14 GPIO_OUTPUT_HIGH>;
 			label = "PowerGood";
 		};
 	};
@@ -34,27 +30,27 @@
 		compatible = "gpio-keys";
 
 		sd_mux_sel {
-			gpios = <&gpioe 0 0>;
+			gpios = <&gpioe 0 GPIO_OUTPUT_LOW>;
 			label = "SD_MUX_SEL";
 		};
 
 		sd_mux_en_l {
-			gpios = <&gpioe 1 0>;
+			gpios = <&gpioe 1 GPIO_OUTPUT_HIGH>;
 			label = "SD_MUX_EN_L";
 		};
 
 		usd_pwr_sel {
-			gpios = <&gpiob 13 0>;
+			gpios = <&gpiob 13 GPIO_OUTPUT_LOW>;
 			label = "USD_PWR_SEL";
 		};
 
 		usd_pwr_en {
-			gpios = <&gpioe 4 0>;
+			gpios = <&gpioe 4 GPIO_OUTPUT_LOW>;
 			label = "USD_PWR_EN";
 		};
 
 		usd_cd_det {
-			gpios = <&gpioe 2 0>;
+			gpios = <&gpioe 2 GPIO_INPUT_PULL_UP>;
 			label = "USD_CD_DET";
 		};
 	};
@@ -63,7 +59,7 @@
 		compatible = "gpio-keys";
 
 		sysmon_sel {
-			gpios = <&gpioc 6 0>;
+			gpios = <&gpioc 6 GPIO_OUTPUT_HIGH>;
 			label = "SYSMON_SEL";
 		};
 	};
@@ -72,32 +68,32 @@
 		compatible = "gpio-keys";
 
 		pwr_en {
-			gpios = <&gpioc 7 0>;
+			gpios = <&gpioc 7 GPIO_OUTPUT_LOW>;
 			label = "SOM_PWR_EN";
 		};
 
 		pwr_good {
-			gpios = <&gpioc 8 0>;
+			gpios = <&gpioc 8 GPIO_INPUT_PULL_UP>;
 			label = "SOM_PWR_GOOD";
 		};
 
 		boot_mode1 {
-			gpios = <&gpiod 1 0>;
+			gpios = <&gpiod 1 GPIO_OUTPUT_HIGH>;
 			label = "SOM_BOOT_MODE1";
 		};
 
 		boot_mode0 {
-			gpios = <&gpiod 0 0>;
+			gpios = <&gpiod 0 GPIO_OUTPUT_HIGH>;
 			label = "SOM_BOOT_MODE0";
 		};
 
 		por_l_load_l {
-			gpios = <&gpiob 1 0>;
+			gpios = <&gpiob 1 GPIO_OUTPUT_LOW>;
 			label = "SOM_POR_L_LOAD_L";
 		};
 
 		fpga_done {
-			gpios = <&gpiob 0 0>;
+			gpios = <&gpiob 0 GPIO_INPUT_PULL_UP>;
 			label = "SOM_FPGA_DONE";
 		};
 	};
@@ -106,27 +102,27 @@
 		compatible = "gpio-keys";
 
 		tp126 {
-			gpios = <&u78 11 0>;
+			gpios = <&u78 11 GPIO_OUTPUT_LOW>;
 			label = "TP126";
 		};
 
 		tp125 {
-			gpios = <&u78 12 0>;
+			gpios = <&u78 12 GPIO_OUTPUT_LOW>;
 			label = "TP125";
 		};
 
 		board_version_2 {
-			gpios = <&u78 13 0>;
+			gpios = <&u78 13 GPIO_INPUT>;
 			label = "BOARD_VERSION_2";
 		};
 
 		board_version_1 {
-			gpios = <&u78 14 0>;
+			gpios = <&u78 14 GPIO_INPUT>;
 			label = "BOARD_VERSION_1";
 		};
 
 		board_version_0 {
-			gpios = <&u78 15 0>;
+			gpios = <&u78 15 GPIO_INPUT>;
 			label = "BOARD_VERSION_0";
 		};
 	};
@@ -135,12 +131,12 @@
 		compatible = "gpio-keys";
 
 		exp_reset {
-			gpios = <&gpiob 8 0>;
+			gpios = <&gpiob 8 GPIO_OUTPUT_HIGH>;
 			label = "I2C1_EXP_RESET_L";
 		};
 
 		exp_irq {
-			gpios = <&gpiob 5 0>;
+			gpios = <&gpiob 5 GPIO_INPUT_PULL_UP>;
 			label = "I2C1_SMBA";
 		};
 	};

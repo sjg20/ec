@@ -11,26 +11,16 @@
 #include <drivers/gpio.h>
 #include <shell/shell.h>
 #include <sys/printk.h>
+#include "gpio_signal.h"
 #include "led.h"
 
-#define PG_NODE DT_NODELABEL(power_good_led)
-#define PG_LED	DT_GPIO_LABEL(PG_NODE, gpios)
-#define PG_PIN	DT_GPIO_PIN(PG_NODE, gpios)
+DECLARE_GPIOS_FOR(leds);
 
 int led_powergood(bool turn_on)
 {
 	int ret;
 
-	const struct device *dev = device_get_binding(PG_LED);
-	if (dev == NULL) {
-		return -ENODEV;
-	}
-
-	if (turn_on) {
-		ret = gpio_pin_configure(dev, PG_PIN, GPIO_OUTPUT_HIGH);
-	} else {
-		ret = gpio_pin_configure(dev, PG_PIN, GPIO_OUTPUT_LOW);
-	}
+	ret = gpio_pin_set(GPIO_LOOKUP(leds, power_good_led), turn_on ? 1 : 0);
 	if (ret < 0) {
 		printk("gpio_pin_configure failed, ret = %d\n", ret);
 		return ret;
