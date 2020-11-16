@@ -15,6 +15,7 @@
 #include <sys/printk.h>
 
 #include "gpio_signal.h"
+#include "misc_io.h"
 
 DECLARE_GPIOS_FOR(misc);
 
@@ -95,91 +96,119 @@ int misc_io_get_board_version(void)
 /* Shell commands for debugging/testing use. See README.md for details. */
 
 /**
- * @brief Get an IO pin value
- *
- * @param shell Our shell data struct; needed for some shell APIs.
- * @param argc Count of arguments passed to this shell command. Unused.
- * @param argv Arguments for this shell command. argv[0] will be the name
- * of the IO to get.
+ * @brief Get value of TP126
  */
-static int cmd_io_get(const struct shell *shell, size_t argc, char **argv)
+static int cmd_io_get_tp126(const struct shell *shell, size_t argc, char **argv)
 {
 	ARG_UNUSED(argc);
 	ARG_UNUSED(argv);
 
-	int val;
+	int val = gpio_pin_get(GPIO_LOOKUP(misc, tp126));
 
-	if (!strcmp(argv[0], "tp126")) {
-		val = gpio_pin_get(GPIO_LOOKUP(misc, tp126));
-	} else if (!strcmp(argv[0], "tp125")) {
-		val = gpio_pin_get(GPIO_LOOKUP(misc, tp125));
-	} else if (!strcmp(argv[0], "ver")) {
-		val = misc_io_get_board_version();
-	} else {
-		/*
-		 * The shell should not have called this function at all
-		 * unless the subcommand matched a valid option.
-		 */
-		__ASSERT(false, "Shell called us with invalid subcommand.");
-		return -EINVAL;
-	}
+	shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT, "TP126 = %d\n", val);
+	return 0;
+}
 
-	shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT, "%s = %d\n", argv[0],
-		      val);
+/**
+ * @brief Get value of TP125
+ */
+static int cmd_io_get_tp125(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	int val = gpio_pin_get(GPIO_LOOKUP(misc, tp125));
+
+	shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT, "TP125 = %d\n", val);
+	return 0;
+}
+
+/**
+ * @brief Get the board version from BOARD_VERSION[2:0]
+ */
+static int cmd_io_get_ver(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	int val = misc_io_get_board_version();
+
+	shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT,
+		      "BOARD_VERSION[2:0] = %d\n", val);
 	return 0;
 }
 SHELL_STATIC_SUBCMD_SET_CREATE(
-	get_io, SHELL_CMD_ARG(tp126, NULL, "TP126", cmd_io_get, 1, 0),
-	SHELL_CMD_ARG(tp125, NULL, "TP125", cmd_io_get, 1, 0),
-	SHELL_CMD_ARG(ver, NULL, "BOARD_VERSION[2:0]", cmd_io_get, 1, 0),
+	get_io, SHELL_CMD(tp126, NULL, "TP126", cmd_io_get_tp126),
+	SHELL_CMD(tp125, NULL, "TP125", cmd_io_get_tp125),
+	SHELL_CMD(ver, NULL, "BOARD_VERSION[2:0]", cmd_io_get_ver),
 	SHELL_SUBCMD_SET_END);
 
 /**
- * @brief Set an IO pin value
- *
- * @param shell Our shell data struct; needed for some shell APIs.
- * @param argc Count of arguments passed to this shell command. Unused.
- * @param argv Arguments for this shell command. argv[0] will be the name
- * of the IO to set. argv[1] should be "on" or "off".
+ * @brief Set TP126 to on
  */
-static int cmd_io_set(const struct shell *shell, size_t argc, char **argv)
+static int cmd_io_set_tp126_on(const struct shell *shell, size_t argc,
+			       char **argv)
 {
+	ARG_UNUSED(shell);
 	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
 
-	int ret;
-	int val;
+	return gpio_pin_set(GPIO_LOOKUP(misc, tp126), 1);
+}
 
-	if (!strcmp(argv[1], "on")) {
-		val = 1;
-	} else if (!strcmp(argv[1], "off")) {
-		val = 0;
-	} else {
-		shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT,
-			      "please indicate 'on' or 'off'\n");
-		return -EINVAL;
-	}
+/**
+ * @brief Set TP126 to off
+ */
+static int cmd_io_set_tp126_off(const struct shell *shell, size_t argc,
+				char **argv)
+{
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
 
-	if (!strcmp(argv[0], "tp126")) {
-		ret = gpio_pin_set(GPIO_LOOKUP(misc, tp126), val);
-	} else if (!strcmp(argv[0], "tp125")) {
-		ret = gpio_pin_set(GPIO_LOOKUP(misc, tp125), val);
-	} else {
-		/* The shell should not have called this function at all
-		 * unless the subcommand matched a valid option.
-		 */
-		__ASSERT(false, "Shell called us with invalid subcommand.");
-		return -EINVAL;
-	}
+	return gpio_pin_set(GPIO_LOOKUP(misc, tp126), 0);
+}
 
-	return ret;
+/**
+ * @brief Set TP125 to on
+ */
+static int cmd_io_set_tp125_on(const struct shell *shell, size_t argc,
+			       char **argv)
+{
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	return gpio_pin_set(GPIO_LOOKUP(misc, tp125), 1);
+}
+
+/**
+ * @brief Set TP126 to off
+ */
+static int cmd_io_set_tp125_off(const struct shell *shell, size_t argc,
+				char **argv)
+{
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	return gpio_pin_set(GPIO_LOOKUP(misc, tp125), 0);
 }
 SHELL_STATIC_SUBCMD_SET_CREATE(
-	set_io, SHELL_CMD_ARG(tp126, NULL, "TP126 [on|off]", cmd_io_set, 2, 0),
-	SHELL_CMD_ARG(tp125, NULL, "TP125 [on|off]", cmd_io_set, 2, 0),
+	tp126_on_off, SHELL_CMD(on, NULL, "set TP126 on", cmd_io_set_tp126_on),
+	SHELL_CMD(off, NULL, "set TP126 off", cmd_io_set_tp126_off),
 	SHELL_SUBCMD_SET_END);
 SHELL_STATIC_SUBCMD_SET_CREATE(
-	io_cmds, SHELL_CMD(get, &get_io, "get IO value", cmd_io_get),
-	SHELL_CMD(set, &set_io, "get IO pin", cmd_io_get),
-	SHELL_SUBCMD_SET_END /* Array terminated. */
+	tp125_on_off, SHELL_CMD(on, NULL, "set TP125 on", cmd_io_set_tp125_on),
+	SHELL_CMD(off, NULL, "set TP125 off", cmd_io_set_tp125_off),
+	SHELL_SUBCMD_SET_END);
+SHELL_STATIC_SUBCMD_SET_CREATE(
+	set_io, SHELL_CMD(tp126, &tp126_on_off, "set TP126", NULL),
+	SHELL_CMD(tp125, &tp125_on_off, "set TP125", NULL),
+	SHELL_SUBCMD_SET_END);
+SHELL_STATIC_SUBCMD_SET_CREATE(io_cmds,
+			       SHELL_CMD(get, &get_io, "get IO value", NULL),
+			       SHELL_CMD(set, &set_io, "set IO pin", NULL),
+			       SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(io, &io_cmds, "Control IO pins", NULL);

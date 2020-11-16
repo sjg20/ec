@@ -135,30 +135,39 @@ static int sd_mux_init(const struct device *ptr)
 SYS_INIT(sd_mux_init, APPLICATION, 90);
 
 /**
- * @brief Handle the "sd off/fpga/usb" shell commands.
+ * @brief Handle the "sd off" shell command.
  */
-static int cmd_sd(const struct shell *shell, size_t argc, char **argv)
+static int cmd_sd_off(const struct shell *shell, size_t argc, char **argv)
 {
-	/* The shell should never call a command without a valid argv[0]. */
-	__ASSERT(argc >= 1, "Shell passed invalid argument count");
-	if (argc == 0) {
-		return -EINVAL;
-	}
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
 
-	if (strcmp(argv[0], "off") == 0) {
-		return sd_mux_set(SD_MUX_OFF);
-	} else if (strcmp(argv[0], "fpga") == 0) {
-		return sd_mux_set(SD_MUX_FPGA);
-	} else if (strcmp(argv[0], "usb") == 0) {
-		return sd_mux_set(SD_MUX_USB);
-	}
+	return sd_mux_set(SD_MUX_OFF);
+}
 
-	/*
-	 * The shell should not have called this function at all
-	 * unless the subcommand matched a valid option.
-	 */
-	__ASSERT(false, "Shell called us with invalid subcommand.");
-	return -EINVAL;
+/**
+ * @brief Handle the "sd fpga" shell command.
+ */
+static int cmd_sd_fpga(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	return sd_mux_set(SD_MUX_FPGA);
+}
+
+/**
+ * @brief Handle the "sd usb" shell command.
+ */
+static int cmd_sd_usb(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	return sd_mux_set(SD_MUX_USB);
 }
 
 /**
@@ -190,9 +199,9 @@ static int cmd_sd_status(const struct shell *shell, size_t argc, char **argv)
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
-	sd_cmds, SHELL_CMD(off, NULL, "disconnect the SD mux", cmd_sd),
-	SHELL_CMD(fpga, NULL, "connect the SD mux to the FPGA", cmd_sd),
-	SHELL_CMD(usb, NULL, "connect the SD mux to the USB", cmd_sd),
+	sd_cmds, SHELL_CMD(off, NULL, "disconnect the SD mux", cmd_sd_off),
+	SHELL_CMD(fpga, NULL, "connect the SD mux to the FPGA", cmd_sd_fpga),
+	SHELL_CMD(usb, NULL, "connect the SD mux to the USB", cmd_sd_usb),
 	SHELL_CMD(status, NULL, "get SD mux status", cmd_sd_status),
 	SHELL_SUBCMD_SET_END /* Array terminated. */
 );

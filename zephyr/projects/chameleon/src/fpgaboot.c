@@ -316,10 +316,6 @@ SYS_INIT(fpgaboot_init, APPLICATION, 75);
 
 /**
  * @brief Display the FPGA status
- *
- * @param shell Our shell data struct; needed for some shell APIs.
- * @param argc Count of arguments passed to this shell command. Unused.
- * @param argv Arguments for this shell command. Unused.
  */
 static int cmd_status(const struct shell *shell, size_t argc, char **argv)
 {
@@ -345,10 +341,6 @@ static int cmd_status(const struct shell *shell, size_t argc, char **argv)
 
 /**
  * @brief Turn on the FPGA
- *
- * @param shell Our shell data struct; needed for some shell APIs.
- * @param argc Count of arguments passed to this shell command. Unused.
- * @param argv Arguments for this shell command. Unused.
  */
 static int cmd_on(const struct shell *shell, size_t argc, char **argv)
 {
@@ -362,10 +354,6 @@ static int cmd_on(const struct shell *shell, size_t argc, char **argv)
 
 /**
  * @brief Turn off the FPGA
- *
- * @param shell Our shell data struct; needed for some shell APIs.
- * @param argc Count of arguments passed to this shell command. Unused.
- * @param argv Arguments for this shell command. Unused.
  */
 static int cmd_off(const struct shell *shell, size_t argc, char **argv)
 {
@@ -376,36 +364,19 @@ static int cmd_off(const struct shell *shell, size_t argc, char **argv)
 	fpgaboot_power_off();
 	return 0;
 }
+
 /**
  * @brief Set the FPGA boot mode
- *
- * @param shell Our shell data struct; needed for some shell APIs.
- * @param argc Count of arguments passed to this shell command. Unused.
- * @param argv Arguments for this shell command. Unused.
  */
-static int cmd_boot(const struct shell *shell, size_t argc, char **argv)
+static int cmd_boot(const struct shell *shell, enum fpga_boot_mode mode,
+		    const char *mode_str)
 {
-	ARG_UNUSED(argc);
-	ARG_UNUSED(argv);
-
 	int ret;
 
-	if (strcmp(argv[0], "emmc") == 0) {
-		ret = fpgaboot_set_boot_mode(FPGA_BOOT_EMMC);
-	} else if (strcmp(argv[0], "qspi") == 0) {
-		ret = fpgaboot_set_boot_mode(FPGA_BOOT_QSPI);
-	} else if (strcmp(argv[0], "sdio") == 0) {
-		ret = fpgaboot_set_boot_mode(FPGA_BOOT_SDIO);
-	} else {
-		/* The shell should not have called this function at all
-		 * unless the subcommand matched a valid option.
-		 */
-		__ASSERT(false, "Shell called us with invalid subcommand.");
-		return -EINVAL;
-	}
+	ret = fpgaboot_set_boot_mode(mode);
 	if (ret == 0) {
 		shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT,
-			      "FPGA boot mode set to %s\n", argv[0]);
+			      "FPGA boot mode set to %s\n", mode_str);
 	} else if (ret == -EBUSY) {
 		shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT,
 			      "FPGA is busy. Try again in a few seconds.\n");
@@ -413,13 +384,46 @@ static int cmd_boot(const struct shell *shell, size_t argc, char **argv)
 		shell_fprintf(shell, SHELL_VT100_COLOR_DEFAULT,
 			      "Unknown error %d.\n", ret);
 	}
-	return 0;
+	return ret;
+}
+
+/**
+ * @brief Set the FPGA boot mode to eMMC
+ */
+static int cmd_boot_emmc(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	return cmd_boot(shell, FPGA_BOOT_EMMC, "eMMC");
+}
+
+/**
+ * @brief Set the FPGA boot mode to QSPI
+ */
+static int cmd_boot_qspi(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	return cmd_boot(shell, FPGA_BOOT_QSPI, "QSPI");
+}
+
+/**
+ * @brief Set the FPGA boot mode to SDIO
+ */
+static int cmd_boot_sdio(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	return cmd_boot(shell, FPGA_BOOT_SDIO, "SDIO");
 }
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	boot_mode,
-	SHELL_CMD_ARG(emmc, NULL, "set FPGA to boot from eMMC", cmd_boot, 1, 0),
-	SHELL_CMD_ARG(qspi, NULL, "set FPGA to boot from QSPI", cmd_boot, 1, 0),
-	SHELL_CMD_ARG(sdio, NULL, "set FPGA to boot from SDIO", cmd_boot, 1, 0),
+	SHELL_CMD(emmc, NULL, "set FPGA to boot from eMMC", cmd_boot_emmc),
+	SHELL_CMD(qspi, NULL, "set FPGA to boot from QSPI", cmd_boot_qspi),
+	SHELL_CMD(sdio, NULL, "set FPGA to boot from SDIO", cmd_boot_sdio),
 	SHELL_SUBCMD_SET_END);
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	fpga_cmds, SHELL_CMD(status, NULL, "get status", cmd_status),

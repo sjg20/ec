@@ -39,32 +39,34 @@ int led_powergood(bool turn_on)
 	return 0;
 }
 
-static int cmd_led(const struct shell *shell, size_t argc, char **argv)
+/**
+ * @brief Turn POWERGOOD LED on
+ */
+static int cmd_led_on(const struct shell *shell, size_t argc, char **argv)
 {
-	/* The shell should never call a command without a valid argv[0]. */
-	__ASSERT(argc >= 1, "Shell passed invalid argument count");
-	if (argc == 0) {
-		return -EINVAL;
-	}
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
 
-	if (strcmp(argv[0], "on") == 0) {
-		led_powergood(true);
-	} else if (strcmp(argv[0], "off") == 0) {
-		led_powergood(false);
-	} else {
-		/* The shell should not have called this function at all
-		 * unless the subcommand matched a valid option.
-		 */
-		__ASSERT(false, "Shell called us with invalid subcommand.");
-		return -EINVAL;
-	}
-
+	led_powergood(true);
 	return 0;
 }
 
+/**
+ * @brief Turn POWERGOOD LED off
+ */
+static int cmd_led_off(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(shell);
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	led_powergood(false);
+	return 0;
+}
 SHELL_STATIC_SUBCMD_SET_CREATE(led_cmds,
-	SHELL_CMD(on, NULL, "turn LED on", cmd_led),
-	SHELL_CMD(off, NULL, "turn LED off", cmd_led),
+	SHELL_CMD(on, NULL, "turn LED on", cmd_led_on),
+	SHELL_CMD(off, NULL, "turn LED off", cmd_led_off),
 	SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(led, &led_cmds, "LED commands", NULL);
