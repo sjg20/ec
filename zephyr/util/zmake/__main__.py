@@ -49,6 +49,9 @@ def main(argv=None):
                         help='Path to ChromiumOS checkout')
     parser.add_argument('-j', '--jobs', type=int,
                         help='Degree of multiprogramming to use')
+    parser.add_argument('--verbose', action='store_true',
+                        dest='verbose_logging',
+                        help='Print verbose logging')
     sub = parser.add_subparsers(dest='subcommand', help='Subcommand')
     sub.required = True
 
@@ -66,6 +69,9 @@ def main(argv=None):
     configure.add_argument('-b', '--build', action='store_true',
                            dest='build_after_configure',
                            help='Run the build after configuration')
+    configure.add_argument('--test', action='store_true',
+                           dest='test_after_configure',
+                           help='Test the .elf file after configuration')
     configure.add_argument('project_dir', type=pathlib.Path,
                            help='Path to the project to build')
 

@@ -18,7 +18,8 @@ import zmake.util as util
 
 class Zmake:
     """Wrapper class encapsulating zmake's supported operations."""
-    def __init__(self, checkout=None, jobserver=None, jobs=0):
+    def __init__(self, checkout=None, jobserver=None, jobs=0,
+                 verbose_logging=False):
         if checkout:
             self.checkout = pathlib.Path(checkout)
         else:
@@ -33,10 +34,12 @@ class Zmake:
             except OSError:
                 self.jobserver = zmake.jobserver.GNUMakeJobServer(jobs=jobs)
 
+        self.verbose_logging = verbose_logging
+
     def configure(self, project_dir, build_dir,
                   version=None, zephyr_base=None, module_paths=None,
                   toolchain=None, ignore_unsupported_zephyr_version=False,
-                  build_after_configure=False):
+                  build_after_configure=False, test_after_configure=False):
         """Set up a build directory to later be built by "zmake build"."""
         project = zmake.project.Project(project_dir)
         if version:
@@ -94,7 +97,9 @@ class Zmake:
         # Create symlink to project
         util.update_symlink(project_dir, build_dir / 'project')
 
-        if build_after_configure:
+        if test_after_configure:
+            self.test(build_dir)
+        elif build_after_configure:
             self.build(build_dir)
 
     def build(self, build_dir):
@@ -159,6 +164,9 @@ class Zmake:
                     "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
                         util.repr_command(proc.args), rv, proc.stdout.read()))
             else:
+                if self.verbose_logging:
+                    print(proc.stdout.read())
+
                 print("Execution of {fname: <{fname_width}}... SUCCESS".format(
                     fname=output_files[idx].name,
                     fname_width=max_output_file_name_length + 4))
