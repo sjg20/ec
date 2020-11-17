@@ -32,6 +32,7 @@ def build(opts):
             cwd=os.path.dirname(__file__)).returncode
         if rv != 0:
             return rv
+    return 0
 
 
 def test(opts):
@@ -49,22 +50,14 @@ def test(opts):
             shutil.rmtree(temp_build_dir)
 
         # Build the test
-        print('\n\nBuilding {}'.format(target))
+        print('\n\nTesting {}'.format(target))
         rv = subprocess.run(
-            ['zmake', 'configure', '-b', '-B', temp_build_dir, target],
+            ['zmake', 'configure', '--test', '-B', temp_build_dir, target],
             cwd=os.path.dirname(__file__)).returncode
 
         if rv != 0:
             return rv
-
-        # Run the test
-        rv = subprocess.run([
-            os.path.join(temp_build_dir, 'build-singleimage', 'zephyr',
-                         'zephyr.elf')
-        ]).returncode
-
-        if rv != 0:
-            return rv
+    return 0
 
 
 def main(args):
