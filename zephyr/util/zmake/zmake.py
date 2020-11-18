@@ -62,9 +62,13 @@ class Zmake:
         if not module_paths:
             module_paths = zmake.modules.locate_modules(self.checkout, version)
 
+        if not module_paths['zephyr-chrome']:
+            raise OSError("Missing zephyr-chrome module")
+
         base_config = zmake.build_config.BuildConfig(
             environ_defs={'ZEPHYR_BASE': str(zephyr_base),
-                          'PATH': '/usr/bin'})
+                          'PATH': '/usr/bin'},
+            cmake_defs={'DTS_ROOT': module_paths['zephyr-chrome']})
         module_config = zmake.modules.setup_module_symlinks(
             build_dir / 'modules', module_paths)
 

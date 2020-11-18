@@ -40,6 +40,7 @@ def test(opts):
     temp_build_dir = os.path.join('/tmp', 'zbuild')
     targets = [
         'tests/app/ec',
+        'tests/dts/bindings/i2c',
         '../ec/zephyr/test/base32',
         '../ec/zephyr/test/crc',
         '../ec/zephyr/test/hooks',
