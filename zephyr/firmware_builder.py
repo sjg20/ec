@@ -9,7 +9,6 @@ This is the entry point for the custom firmware builder workflow rZephyripe.
 """
 
 import argparse
-import multiprocessing
 import os
 import shutil
 import subprocess
@@ -36,30 +35,7 @@ def build(opts):
 
 
 def test(opts):
-    """Runs all of the unit tests for Zephyr firmware"""
-    temp_build_dir = os.path.join('/tmp', 'zbuild')
-    targets = [
-        'tests/app/ec',
-        'tests/dts/bindings/i2c',
-        '../ec/zephyr/test/base32',
-        '../ec/zephyr/test/crc',
-        '../ec/zephyr/test/hooks',
-        '../ec/zephyr/test/i2c',
-        '../ec/zephyr/test/tasks'
-    ]
-    for target in targets:
-        if os.path.exists(temp_build_dir):
-            shutil.rmtree(temp_build_dir)
-
-        # Build the test
-        print('\n\nTesting {}'.format(target))
-        rv = subprocess.run(
-            ['zmake', 'configure', '--test', '-B', temp_build_dir, target],
-            cwd=os.path.dirname(__file__)).returncode
-
-        if rv != 0:
-            return rv
-    return 0
+    return subprocess.run(['zmake', 'testall', '--fail-fast']).returncode
 
 
 def main(args):

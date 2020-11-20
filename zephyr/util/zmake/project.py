@@ -37,7 +37,10 @@ class ProjectConfig:
             },
             'toolchain': {
                 'type': 'string',
-            }
+            },
+            'is-test': {
+                'type': 'boolean',
+            },
         },
     }
 
@@ -62,6 +65,10 @@ class ProjectConfig:
     @property
     def toolchain(self):
         return self.config_dict['toolchain']
+
+    @property
+    def is_test(self):
+        return self.config_dict['is-test']
 
 
 class Project:

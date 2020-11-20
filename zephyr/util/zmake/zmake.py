@@ -7,6 +7,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import tempfile
 
 import zmake.build_config
 import zmake.modules
@@ -102,9 +103,9 @@ class Zmake:
         util.update_symlink(project_dir, build_dir / 'project')
 
         if test_after_configure:
-            self.test(build_dir)
+            return self.test(build_dir=build_dir)
         elif build_after_configure:
-            self.build(build_dir)
+            return self.build(build_dir=build_dir)
 
     def build(self, build_dir):
         """Build a pre-configured build directory."""
@@ -150,6 +151,12 @@ class Zmake:
         """Test a build directory."""
         procs = []
         output_files = self.build(build_dir)
+
+        # If the project built but isn't a test, just bail.
+        project = zmake.project.Project(build_dir / 'project')
+        if not project.config.is_test:
+            return 0
+
         max_output_file_name_length = max(len(file.name) for file in output_files)
 
         for output_file in output_files:
@@ -167,10 +174,33 @@ class Zmake:
                 raise OSError(
                     "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
                         util.repr_command(proc.args), rv, proc.stdout.read()))
-            else:
-                if self.verbose_logging:
-                    print(proc.stdout.read())
 
-                print("Execution of {fname: <{fname_width}}... SUCCESS".format(
-                    fname=output_files[idx].name,
-                    fname_width=max_output_file_name_length + 4))
+            if self.verbose_logging:
+                print(proc.stdout.read())
+
+            print("Execution of {fname: <{fname_width}}... SUCCESS".format(
+                fname=output_files[idx].name,
+                fname_width=max_output_file_name_length + 4))
+        return 0
+
+    def testall(self, fail_fast=False):
+        """Test all the valid test targets"""
+        modules = zmake.modules.locate_modules(self.checkout, version=None)
+        root_dirs = [modules['zephyr-chrome'] / 'tests', modules['ec-shim'] / 'zephyr/test']
+        for root_dir in root_dirs:
+            for path in pathlib.Path(root_dir).rglob('zmake.yaml'):
+                project_dir = path.parent
+                with tempfile.TemporaryDirectory(
+                        suffix=os.path.basename(project_dir),
+                        prefix='zbuild') as temp_build_dir:
+                    # Configure and run the test.
+                    print('Testing {}...'.format(project_dir))
+                    try:
+                        self.configure(project_dir=pathlib.Path(project_dir),
+                                       build_dir=pathlib.Path(temp_build_dir),
+                                       test_after_configure=True)
+                    except OSError as e:
+                        if fail_fast:
+                            raise e
+                        print(str(e))
+        return 0

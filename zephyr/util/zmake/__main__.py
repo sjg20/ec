@@ -83,6 +83,10 @@ def main(argv=None):
     test.add_argument('build_dir', type=pathlib.Path,
                       help='The build directory used during configuration')
 
+    testall = sub.add_parser('testall')
+    testall.add_argument('--fail-fast', action='store_true',
+                         help='stop testing after the first error')
+
     opts = parser.parse_args(argv)
 
     zmake = call_with_namespace(zm.Zmake, opts)

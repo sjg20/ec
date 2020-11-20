@@ -15,3 +15,4 @@ output-type: elf
 # toolchain, you can pass --toolchain=arm-none-eabi to zmake
 # configure, and that will work as well.
 toolchain: zephyr
+is-test: true

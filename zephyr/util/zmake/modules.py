@@ -21,6 +21,8 @@ def third_party_module(name, checkout, version):
     Return:
         The path to the module module.
     """
+    if not version or len(version) < 2:
+        return None
     return checkout / 'src' / 'third_party' / 'zephyr' / name / 'v{}.{}'.format(
         version[0], version[1])
 
