@@ -44,6 +44,7 @@ def test(opts):
         '../ec/zephyr/test/base32',
         '../ec/zephyr/test/crc',
         '../ec/zephyr/test/hooks',
+        '../ec/zephyr/test/i2c',
         '../ec/zephyr/test/tasks'
     ]
     for target in targets:
