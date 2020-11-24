@@ -130,6 +130,20 @@
 			label = "BOARD_VERSION_0";
 		};
 	};
+
+	i2c-switch {
+		compatible = "gpio-keys";
+
+		exp_reset {
+			gpios = <&gpiob 8 0>;
+			label = "I2C1_EXP_RESET_L";
+		};
+
+		exp_irq {
+			gpios = <&gpiob 5 0>;
+			label = "I2C1_SMBA";
+		};
+	};
 };
 
 &usart1 {

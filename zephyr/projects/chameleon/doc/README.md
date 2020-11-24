@@ -377,3 +377,57 @@ If you hook up a logic analyzer to I2C2 SCL and SDA, TP125, and TP126, you can
 see the I2C bus transactions between the STM32 and U78 (which has device
 address 0x21) to read and write the individual bits, as well as watching TP125
 and TP126 change when they are written.
+
+## I2C bus switch
+
+The Chameleon v3 has a MAX7367 I2C bus switch on I2C1. On the other side of
+the switch, buses 0 and 1 have a PS8468 DP demux, PS8469 video output demux,
+and MCDP2900 DP to HDMI translator. These are on separate buses due to device
+address conflicts. Bus 2 has two EP91A6SQ HDMI repeaters with different device
+addresses set by pin strapping. Bus 3 has no connections. There is a single
+interrupt line from the MAX7367 that can be asserted by any of 4 interrupt
+lines on the other side of the switch. Only IRQ2 is actually connected to
+an interrupt source (the EP91A6SQ chips).
+
+The `i2c_switch` module exposes a simple API to control the reset line to the
+MAX7367 (to recover in case of a bus hang), to control the bus switching, and
+to read the interrupt line status. There is also a binary semaphore that the
+IRQ handler gives, although there is currently no task that waits on the
+semaphore.
+
+The `i2c_switch` shell command allows setting the switch value. Provide a value
+from 0 to 3 to select one of the buses, or a value outside that range to turn
+off all buses. The effect of the switch can be seen with `i2c scan I2C_1` (as
+provided by Zephyr's `i2c_shell.c`).
+
+```
+$ i2c_switch 2
+$ i2c scan I2C_1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:             -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- 64 65 -- -- -- -- -- -- 6c 6d -- --
+70: -- -- -- 73 -- -- -- --
+5 devices found on I2C_1
+$ i2c_switch 3
+$ i2c scan I2C_1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:             -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- 73 -- -- -- --
+1 devices found on I2C_1
+```
+
+If you set the I2C switch to 0 or 1, only the MAX7637 shows up in the scan.
+I don't know why the PS8468, PS8469, and MCDP2900 do not respond to the scan
+right now; they might be held in reset because I haven't gotten to the code
+to manage those chips yet.
