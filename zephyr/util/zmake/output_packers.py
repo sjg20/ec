@@ -46,9 +46,14 @@ class ElfPacker(BasePacker):
 
 
 class RawBinPacker(BasePacker):
+    def configs(self):
+        yield 'ro', build_config.BuildConfig(kconfig_defs={'CONFIG_CROS_EC_RO': 'y'})
+        yield 'rw', build_config.BuildConfig(kconfig_defs={'CONFIG_CROS_EC_RW': 'y'})
+
     """Raw proxy for BIN output of a single build."""
-    def pack_firmware(self, work_dir, jobclient, singleimage):
-        yield singleimage / 'zephyr' / 'zephyr.bin', 'zephyr.bin'
+    def pack_firmware(self, work_dir, jobclient, ro, rw):
+        yield ro / 'zephyr' / 'zephyr.bin', 'zephyr-ro.bin'
+        yield rw / 'zephyr' / 'zephyr.bin', 'zephyr-rw.bin'
 
 
 # A dictionary mapping packer config names to classes.
