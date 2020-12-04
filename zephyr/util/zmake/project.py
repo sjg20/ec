@@ -68,7 +68,7 @@ class ProjectConfig:
 
     @property
     def is_test(self):
-        return self.config_dict['is-test']
+        return self.config_dict.get('is-test', False)
 
 
 class Project:

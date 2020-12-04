@@ -107,7 +107,7 @@ class Zmake:
         elif build_after_configure:
             return self.build(build_dir=build_dir)
 
-    def build(self, build_dir):
+    def build(self, build_dir, output_files_out=None):
         """Build a pre-configured build directory."""
         project = zmake.project.Project(build_dir / 'project')
 
@@ -139,25 +139,25 @@ class Zmake:
             if not d.exists():
                 d.mkdir()
 
-        output_files = []
+        if output_files_out is None:
+            output_files_out = []
         for output_file, output_name in project.packer.pack_firmware(
                 packer_work_dir, self.jobserver, **dirs):
             shutil.copy2(output_file, output_dir / output_name)
-            output_files.append(output_file)
+            output_files_out.append(output_file)
 
-        return output_files
+        return 0
 
     def test(self, build_dir):
         """Test a build directory."""
         procs = []
-        output_files = self.build(build_dir)
+        output_files = []
+        self.build(build_dir, output_files_out=output_files)
 
         # If the project built but isn't a test, just bail.
         project = zmake.project.Project(build_dir / 'project')
         if not project.config.is_test:
             return 0
-
-        max_output_file_name_length = max(len(file.name) for file in output_files)
 
         for output_file in output_files:
             procs.append(self.jobserver.popen(
@@ -177,30 +177,36 @@ class Zmake:
 
             if self.verbose_logging:
                 print(stdout)
-
-            print("Execution of {fname: <{fname_width}}... SUCCESS".format(
-                fname=output_files[idx].name,
-                fname_width=max_output_file_name_length + 4))
         return 0
 
     def testall(self, fail_fast=False):
         """Test all the valid test targets"""
         modules = zmake.modules.locate_modules(self.checkout, version=None)
-        root_dirs = [modules['zephyr-chrome'] / 'tests', modules['ec-shim'] / 'zephyr/test']
+        root_dirs = [modules['zephyr-chrome'] / 'projects',
+                     modules['zephyr-chrome'] / 'tests',
+                     modules['ec-shim'] / 'zephyr/test']
+        project_dirs = []
         for root_dir in root_dirs:
+            print('Finding zmake target under \'{}\':'.format(root_dir))
             for path in pathlib.Path(root_dir).rglob('zmake.yaml'):
-                project_dir = path.parent
-                with tempfile.TemporaryDirectory(
-                        suffix=os.path.basename(project_dir),
-                        prefix='zbuild') as temp_build_dir:
-                    # Configure and run the test.
-                    print('Testing {}...'.format(project_dir))
-                    try:
-                        self.configure(project_dir=pathlib.Path(project_dir),
-                                       build_dir=pathlib.Path(temp_build_dir),
-                                       test_after_configure=True)
-                    except OSError as e:
-                        if fail_fast:
-                            raise e
-                        print(str(e))
+                project_dirs.append(path.parent)
+
+        # Find the longest path string + 3 (for '...') + 8 (for padding).
+        max_project_dir_len = max(len(str(f)) for f in project_dirs) + 11
+        for project_dir in project_dirs:
+            is_test = zmake.project.Project(project_dir).config.is_test
+            with tempfile.TemporaryDirectory(
+                    suffix=os.path.basename(project_dir),
+                    prefix='zbuild') as temp_build_dir:
+                # Configure and run the test.
+                print('  {} {}'.format(
+                    'Testing ' if is_test else 'Building',
+                    '{}...'.format(project_dir).ljust(max_project_dir_len)), end='', flush=True)
+                rv = self.configure(project_dir=pathlib.Path(project_dir),
+                                    build_dir=pathlib.Path(temp_build_dir),
+                                    build_after_configure=True,
+                                    test_after_configure=is_test)
+                print('        {}'.format('PASS' if rv == 0 else 'FAIL'))
+                if rv and fail_fast:
+                    return rv
         return 0
