@@ -140,6 +140,84 @@
 			label = "I2C1_SMBA";
 		};
 	};
+
+	videomux {
+		compatible = "gpio-keys";
+
+		/*
+		 * I/Os are initially set to connect HDMI signals to the FPGA
+		 * MGTs and DisplayPort signals through the DP->HDMI converter
+		 * to the HDMI Receiver.
+		 */
+		gp213_it68051p1_ch_sel {
+			/* GPU_SEL on U18 */
+			gpios = <&gpiog 1 GPIO_OUTPUT_LOW>;
+			label = "GP213_IT68051P1_CH_SEL";
+		};
+
+		dp1_ps8468_sw {
+			/* SW on U3 */
+			gpios = <&gpiog 12 GPIO_OUTPUT_LOW>;
+			label = "DP1_PS8468_SW";
+		};
+
+		hdmi1_gp213_ch_sel {
+			/* GPU_SEL on U10 */
+			gpios = <&gpiog 0 GPIO_OUTPUT_HIGH>;
+			label = "HDMI1_GP213_CH_SEL";
+		};
+
+		somp1_mode_sel {
+			/* GPU_SEL on U11 */
+			gpios = <&gpiog 4 GPIO_OUTPUT_HIGH>;
+			label = "SOMP1_MODE_SEL";
+		};
+
+		/*
+		 * Note that all of the channels are designated 1&2 except for
+		 * the IT68051, which has ports 1 (channel 1 on the other
+		 * switches) and 0 (channel 2 on the other switches).
+		 */
+		gp213_it68051p0_ch_sel {
+			/* GPU_SEL on U14 */
+			gpios = <&gpiog 3 GPIO_OUTPUT_LOW>;
+			label = "GP213_IT68051P0_CH_SEL";
+		};
+
+		dp2_ps8468_sw {
+			/* SW on U22 */
+			gpios = <&gpiog 13 GPIO_OUTPUT_LOW>;
+			label = "DP2_PS8468_SW";
+		};
+
+		hdmi2_gp213_ch_sel {
+			/* GPU_SEL on U29 */
+			gpios = <&gpiog 2 GPIO_OUTPUT_HIGH>;
+			label = "HDMI2_GP213_CH_SEL";
+		};
+
+		somp2_mode_sel {
+			/* GPU_SEL on U31 */
+			gpios = <&gpiog 5 GPIO_OUTPUT_HIGH>;
+			label = "SOMP2_MODE_SEL";
+		};
+
+		/*
+		 * Reset lines for the PS8468 demuxes. All of the other
+		 * mux/demux chips do not have reset lines.
+		 */
+		dp1_ps8468_rst_l {
+			/* RESETN on U3 */
+			gpios = <&gpiof 5 GPIO_OUTPUT_HIGH>;
+			label = "DP1_PS8468_RST_L";
+		};
+
+		dp2_ps8468_rst_l {
+			/* RESETN on U22 */
+			gpios = <&gpiof 11 GPIO_OUTPUT_HIGH>;
+			label = "DP2_PS8468_RST_L";
+		};
+	};
 };
 
 &usart1 {
