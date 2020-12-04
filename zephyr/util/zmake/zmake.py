@@ -93,11 +93,11 @@ class Zmake:
                                    stderr=subprocess.STDOUT, encoding='utf-8',
                                    errors='replace'))
         for proc in processes:
-            rv = proc.wait()
-            if rv != 0:
+            stdout, _ = proc.communicate()
+            if proc.returncode:
                 raise OSError(
                     "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
-                        util.repr_command(proc.args), rv, proc.stdout.read()))
+                        util.repr_command(proc.args), proc.returncode, stdout))
 
         # Create symlink to project
         util.update_symlink(project_dir, build_dir / 'project')
@@ -126,11 +126,11 @@ class Zmake:
                 errors='replace'))
 
         for proc in procs:
-            rv = proc.wait()
-            if rv != 0:
+            stdout, _ = proc.communicate()
+            if proc.returncode:
                 raise OSError(
                     "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
-                        util.repr_command(proc.args), rv, proc.stdout.read()))
+                        util.repr_command(proc.args), proc.returncode, stdout))
 
         # Run the packer.
         packer_work_dir = build_dir / 'packer'
@@ -169,14 +169,14 @@ class Zmake:
                 errors='replace'))
 
         for idx, proc in enumerate(procs):
-            rv = proc.wait()
-            if rv != 0:
+            stdout, _ = proc.communicate()
+            if proc.returncode:
                 raise OSError(
                     "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
-                        util.repr_command(proc.args), rv, proc.stdout.read()))
+                        util.repr_command(proc.args), proc.returncode, stdout))
 
             if self.verbose_logging:
-                print(proc.stdout.read())
+                print(stdout)
 
             print("Execution of {fname: <{fname_width}}... SUCCESS".format(
                 fname=output_files[idx].name,
