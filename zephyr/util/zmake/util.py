@@ -132,3 +132,16 @@ def update_symlink(target_path, link_path):
             if link_path.exists():
                 link_path.unlink()
             link_path.symlink_to(target)
+
+
+def log_multi_line(logger, level, message):
+    """Log a potentially multi-line message to the logger.
+
+    Args:
+        logger: The Logger object to log to.
+        level: The logging level to use when logging.
+        message: The (potentially) multi-line message to log.
+    """
+    for line in message.splitlines():
+        if line:
+            logger.log(level, line)

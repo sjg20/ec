@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 """Module encapsulating Zmake wrapper object."""
+import logging
 import os
 import pathlib
 import shutil
@@ -19,8 +20,7 @@ import zmake.util as util
 
 class Zmake:
     """Wrapper class encapsulating zmake's supported operations."""
-    def __init__(self, checkout=None, jobserver=None, jobs=0,
-                 verbose_logging=False):
+    def __init__(self, checkout=None, jobserver=None, jobs=0):
         if checkout:
             self.checkout = pathlib.Path(checkout)
         else:
@@ -35,7 +35,7 @@ class Zmake:
             except OSError:
                 self.jobserver = zmake.jobserver.GNUMakeJobServer(jobs=jobs)
 
-        self.verbose_logging = verbose_logging
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def configure(self, project_dir, build_dir,
                   version=None, zephyr_base=None, module_paths=None,
@@ -79,7 +79,9 @@ class Zmake:
         if not build_dir.exists():
             build_dir = build_dir.mkdir()
         processes = []
+        self.logger.info('Building %s in %s.', project_dir, build_dir)
         for build_name, build_config in project.iter_builds():
+            self.logger.info('Configuring %s:%s.', project_dir, build_name)
             config = (base_config
                       | toolchain_config
                       | module_config
@@ -95,9 +97,11 @@ class Zmake:
         for proc in processes:
             stdout, _ = proc.communicate()
             if proc.returncode:
+                util.log_multi_line(self.logger, logging.ERROR, stdout)
                 raise OSError(
-                    "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
-                        util.repr_command(proc.args), proc.returncode, stdout))
+                    "Execution of {} failed (return code={})!\n".format(
+                        util.repr_command(proc.args), proc.returncode))
+            util.log_multi_line(self.logger, logging.DEBUG, stdout)
 
         # Create symlink to project
         util.update_symlink(project_dir, build_dir / 'project')
@@ -114,6 +118,7 @@ class Zmake:
         procs = []
         dirs = {}
         for build_name, build_config in project.iter_builds():
+            self.logger.info('Building %s:%s.', build_dir, build_name)
             dirs[build_name] = build_dir / 'build-{}'.format(build_name)
             procs.append(self.jobserver.popen(
                 ['/usr/bin/ninja', '-C', dirs[build_name]],
@@ -128,9 +133,11 @@ class Zmake:
         for proc in procs:
             stdout, _ = proc.communicate()
             if proc.returncode:
+                util.log_multi_line(self.logger, logging.ERROR, stdout)
                 raise OSError(
-                    "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
-                        util.repr_command(proc.args), proc.returncode, stdout))
+                    "Execution of {} failed (return code={})!\n".format(
+                        util.repr_command(proc.args), proc.returncode))
+            util.log_multi_line(self.logger, logging.DEBUG, stdout)
 
         # Run the packer.
         packer_work_dir = build_dir / 'packer'
@@ -144,6 +151,7 @@ class Zmake:
         for output_file, output_name in project.packer.pack_firmware(
                 packer_work_dir, self.jobserver, **dirs):
             shutil.copy2(output_file, output_dir / output_name)
+            self.logger.info('Output file \'%r\' created.', output_file)
             output_files_out.append(output_file)
 
         return 0
@@ -160,6 +168,7 @@ class Zmake:
             return 0
 
         for output_file in output_files:
+            self.logger.info('Running tests in %s.', output_file)
             procs.append(self.jobserver.popen(
                 [output_file],
                 claim_job=True,
@@ -171,12 +180,11 @@ class Zmake:
         for idx, proc in enumerate(procs):
             stdout, _ = proc.communicate()
             if proc.returncode:
+                util.log_multi_line(self.logger, logging.ERROR, stdout)
                 raise OSError(
-                    "Execution of {} failed (return code={})!\nOUTPUT:\n{}".format(
-                        util.repr_command(proc.args), proc.returncode, stdout))
-
-            if self.verbose_logging:
-                print(stdout)
+                    "Execution of {} failed (return code={})!\n".format(
+                        util.repr_command(proc.args), proc.returncode))
+            util.log_multi_line(self.logger, logging.DEBUG, stdout)
         return 0
 
     def testall(self, fail_fast=False):
@@ -187,7 +195,7 @@ class Zmake:
                      modules['ec-shim'] / 'zephyr/test']
         project_dirs = []
         for root_dir in root_dirs:
-            print('Finding zmake target under \'{}\':'.format(root_dir))
+            self.logger.info('Finding zmake target under \'%s\'.', root_dir)
             for path in pathlib.Path(root_dir).rglob('zmake.yaml'):
                 project_dirs.append(path.parent)
 
@@ -196,17 +204,13 @@ class Zmake:
         for project_dir in project_dirs:
             is_test = zmake.project.Project(project_dir).config.is_test
             with tempfile.TemporaryDirectory(
-                    suffix=os.path.basename(project_dir),
-                    prefix='zbuild') as temp_build_dir:
+                    suffix='-{}'.format(os.path.basename(project_dir)),
+                    prefix='zbuild-') as temp_build_dir:
                 # Configure and run the test.
-                print('  {} {}'.format(
-                    'Testing ' if is_test else 'Building',
-                    '{}...'.format(project_dir).ljust(max_project_dir_len)), end='', flush=True)
                 rv = self.configure(project_dir=pathlib.Path(project_dir),
                                     build_dir=pathlib.Path(temp_build_dir),
                                     build_after_configure=True,
                                     test_after_configure=is_test)
-                print('        {}'.format('PASS' if rv == 0 else 'FAIL'))
                 if rv and fail_fast:
                     return rv
         return 0

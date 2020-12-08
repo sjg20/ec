@@ -5,6 +5,7 @@
 """The entry point into zmake."""
 import argparse
 import inspect
+import logging
 import pathlib
 import sys
 
@@ -32,6 +33,16 @@ def call_with_namespace(func, namespace):
     return func(**kwds)
 
 
+# Dictionary used to map log level strings to their corresponding int values.
+log_level_map = {
+    'DEBUG': logging.DEBUG,
+    'INFO': logging.INFO,
+    'WARNING': logging.WARNING,
+    'ERROR': logging.ERROR,
+    'CRITICAL': logging.CRITICAL
+}
+
+
 def main(argv=None):
     """The main function.
 
@@ -49,9 +60,10 @@ def main(argv=None):
                         help='Path to ChromiumOS checkout')
     parser.add_argument('-j', '--jobs', type=int,
                         help='Degree of multiprogramming to use')
-    parser.add_argument('--verbose', action='store_true',
-                        dest='verbose_logging',
-                        help='Print verbose logging')
+    parser.add_argument('-l', '--log-level', choices=list(log_level_map.keys()),
+                        default='WARNING',
+                        dest='log_level',
+                        help='Set the logging level (default=WARNING)')
     sub = parser.add_subparsers(dest='subcommand', help='Subcommand')
     sub.required = True
 
@@ -88,6 +100,9 @@ def main(argv=None):
                          help='stop testing after the first error')
 
     opts = parser.parse_args(argv)
+
+    logging.basicConfig(format='%(asctime)s - %(name)s/%(levelname)s: %(message)s',
+                        level=log_level_map.get(opts.log_level))
 
     zmake = call_with_namespace(zm.Zmake, opts)
     subcommand_method = getattr(zmake, opts.subcommand.replace('-', '_'))
