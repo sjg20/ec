@@ -8,9 +8,9 @@ import zmake.build_config as build_config
 
 # Mapping of toolchain names -> (λ (module-paths) build-config)
 toolchains = {
-    'cros': lambda modules: build_config.BuildConfig(
+    'coreboot-sdk': lambda modules: build_config.BuildConfig(
         cmake_defs={'TOOLCHAIN_ROOT': str(modules['zephyr-chrome']),
-                    'ZEPHYR_TOOLCHAIN_VARIANT': 'cros'}),
+                    'ZEPHYR_TOOLCHAIN_VARIANT': 'coreboot-sdk'}),
     'arm-none-eabi': lambda _: build_config.BuildConfig(
         cmake_defs={'ZEPHYR_TOOLCHAIN_VARIANT': 'cross-compile',
                     'CROSS_COMPILE': '/usr/bin/arm-none-eabi-'}),
