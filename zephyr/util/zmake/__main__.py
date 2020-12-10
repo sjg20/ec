@@ -64,6 +64,9 @@ def main(argv=None):
                         default='WARNING',
                         dest='log_level',
                         help='Set the logging level (default=WARNING)')
+    parser.add_argument('-L', '--no-log-label', action='store_true',
+                        default=False,
+                        help='Turn off logging labels')
     sub = parser.add_subparsers(dest='subcommand', help='Subcommand')
     sub.required = True
 
@@ -101,8 +104,11 @@ def main(argv=None):
 
     opts = parser.parse_args(argv)
 
-    logging.basicConfig(format='%(asctime)s - %(name)s/%(levelname)s: %(message)s',
-                        level=log_level_map.get(opts.log_level))
+    if opts.no_log_label:
+        log_format = '%(message)s'
+    else:
+        log_format = '%(asctime)s - %(name)s/%(levelname)s: %(message)s'
+    logging.basicConfig(format=log_format, level=log_level_map.get(opts.log_level))
 
     zmake = call_with_namespace(zm.Zmake, opts)
     subcommand_method = getattr(zmake, opts.subcommand.replace('-', '_'))
