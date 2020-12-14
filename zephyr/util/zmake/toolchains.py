@@ -11,6 +11,9 @@ toolchains = {
     'coreboot-sdk': lambda modules: build_config.BuildConfig(
         cmake_defs={'TOOLCHAIN_ROOT': str(modules['zephyr-chrome']),
                     'ZEPHYR_TOOLCHAIN_VARIANT': 'coreboot-sdk'}),
+    'llvm': lambda modules: build_config.BuildConfig(
+        cmake_defs={'TOOLCHAIN_ROOT': str(modules['zephyr-chrome']),
+                    'ZEPHYR_TOOLCHAIN_VARIANT': 'llvm'}),
     'arm-none-eabi': lambda _: build_config.BuildConfig(
         cmake_defs={'ZEPHYR_TOOLCHAIN_VARIANT': 'cross-compile',
                     'CROSS_COMPILE': '/usr/bin/arm-none-eabi-'}),
