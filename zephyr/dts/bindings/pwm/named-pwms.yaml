@@ -1,0 +1,23 @@
+# Copyright (c) 2020 The Chromium OS Authors
+# SPDX-License-Identifier: Apache-2.0
+
+description: PWM KEYS parent node
+
+compatible: "named-pwms"
+
+child-binding:
+  description: Named PWMs child node
+  properties:
+    pwms:
+      type: phandle-array
+      required: true
+    label:
+      required: true
+      type: string
+      description:
+        Human readable string describing the device (used as
+        device_get_binding() argument)
+    frequency:
+      required: true
+      type: int
+      description: PWM frequency, in Hz
