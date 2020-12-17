@@ -8,6 +8,7 @@
 
 #include "ec_tasks.h"
 #include "hooks.h"
+#include "keyboard_scan.h"
 #include "zephyr_espi_shim.h"
 
 void main(void)
