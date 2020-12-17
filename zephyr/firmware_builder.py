@@ -5,18 +5,27 @@
 # found in the LICENSE file.
 """Build and test all of the Zephyr boards.
 
-This is the entry point for the custom firmware builder workflow rZephyripe.
+This is the entry point for the custom firmware builder workflow recipe.
 """
 
 import argparse
+import multiprocessing
 import os
 import shutil
 import subprocess
 import sys
 
+from google.protobuf import json_format
+
+from chromite.api.gen.chromite.api import firmware_pb2
 
 def build(opts):
     """Builds all Zephyr firmware targets"""
+    # TODO(b/169178847): Add appropriate metric information
+    metrics = firmware_pb2.FwBuildMetricList()
+    with open(opts.metrics, 'w') as f:
+        f.write(json_format.MessageToJson(metrics))
+
     temp_build_dir = os.path.join('/tmp', 'zbuild')
     targets = [
         'projects/experimental/volteer', 'projects/experimental/posix-ec'
@@ -35,6 +44,12 @@ def build(opts):
 
 
 def test(opts):
+    """Runs all of the unit tests for Zephyr firmware"""
+    # TODO(b/169178847): Add appropriate metric information
+    metrics = firmware_pb2.FwTestMetricList()
+    with open(opts.metrics, 'w') as f:
+        f.write(json_format.MessageToJson(metrics))
+
     return subprocess.run(['zmake', 'testall', '--fail-fast']).returncode
 
 
@@ -46,12 +61,25 @@ def main(args):
         print("Must select a valid sub command!")
         return -1
 
-    # Run selectd sub command function
+    # Run selected sub command function
     return opts.func(opts)
 
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description=__doc__)
+
+    parser.add_argument(
+        '--cpus',
+        default=multiprocessing.cpu_count(),
+        help='The number of cores to use.',
+    )
+
+    parser.add_argument(
+        '--metrics',
+        dest='metrics',
+        required=True,
+        help='File to write the json-encoded MetricsList proto message.',
+    )
 
     # Would make this required=True, but not available until 3.7
     sub_cmds = parser.add_subparsers()
