@@ -24,6 +24,11 @@ DECLARE_GPIOS_FOR(i2c_switch);
 
 const struct device *i2c_dev;
 
+/**
+ * @brief Mutex for changing the I2C switch state.
+ */
+static K_MUTEX_DEFINE(i2c_switch_mutex);
+
 int i2c_switch_select_bus(int bus)
 {
 	uint8_t ctrl_val = 0;
@@ -35,6 +40,19 @@ int i2c_switch_select_bus(int bus)
 	if (bus >= 0 && bus < NUM_BUS) {
 		ctrl_val = 1 << bus;
 	}
+
+	/*
+	 * If we are setting a valid value, lock a mutex so that other tasks
+	 * can't override us. If we are setting the result to 0 (no secondary
+	 * bus selected), that's equivalent to saying we're done with that I2C
+	 * bus, and so unlock the mutex for another task to claim it.
+	 */
+	if (ctrl_val != 0) {
+		k_mutex_lock(&i2c_switch_mutex, K_FOREVER);
+	} else {
+		k_mutex_unlock(&i2c_switch_mutex);
+	}
+
 	return i2c_write(i2c_dev, &ctrl_val, 1, MAX7367_ADDR);
 }
 

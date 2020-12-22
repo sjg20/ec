@@ -18,6 +18,14 @@ enum i2c_switch_reset_value {
 /**
  * @brief Select which bus is enabled
  *
+ * The I2C switch controls access to 4 secondary buses. Any task that sets
+ * the switch to enable a secondary bus expects to have exclusive access
+ * to the bus until it's done. Allowing another task to come along and change
+ * the switch to enable a different bus will cause problems. So ... setting
+ * the switch to enable a secondary bus will also lock a mutex (or wait for
+ * the mutex if it's already locked). Setting the switch to "disabled" will
+ * unlock the mutex.
+ *
  * @param bus bus number, 0-3, of which bus to enable. Any number <0 or >3
  * will disable all buses.
  *
