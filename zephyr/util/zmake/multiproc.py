@@ -111,3 +111,109 @@ def log_output(logger, log_level, file_descriptor):
         os.write(_logging_interrupt_pipe[1], b'x')
         # Notify the condition so we can run the select on the current fds.
         _logging_cv.notify_all()
+
+
+class Executor:
+    """Parallel executor helper class.
+
+    This class is used to run multiple functions in parallel. The functions MUST
+    return an integer result code (or throw an exception). This class will start
+    a thread per operation and wait() for all the threads to resolve. If
+    fail_fast is set to True, then not all threads must return before wait()
+    returns. Instead either ALL threads must return 0 OR any thread must return
+    a non zero result (or throw an exception).
+
+    Attributes:
+        fail_fast: Whether or not the first function's error code should
+         terminate the executor.
+        lock: The condition variable used to synchronize across threads.
+        threads: A list of threading.Thread objects currently under this
+         Executor.
+        results: A list of result codes returned by each of the functions called
+         by this Executor.
+    """
+    def __init__(self, fail_fast):
+        self.fail_fast = fail_fast
+        self.lock = threading.Condition()
+        self.threads = []
+        self.results = []
+
+    def append(self, func):
+        """Append the given function to the wait list.
+
+        Once added, the function's return value will be used to determine the
+        Executor's final result value. The function must return an int result
+        code or throw an exception. For example: If two functions were added
+        to the Executor, they will both be run in parallel and their results
+        will determine whether or not the Executor succeeded. If both functions
+        returned 0, then the Executor's wait function will also return 0.
+
+        Args:
+            func: A function which returns an int result code or throws an
+             exception.
+        """
+        with self.lock:
+            thread = threading.Thread(target=lambda: self._run_fn(func),
+                                      daemon=True)
+            thread.start()
+            self.threads.append(thread)
+
+    def wait(self):
+        """Wait for a result to be available.
+
+        This function waits for the executor to resolve. Being resolved depends on
+        the initial fail_fast setting.
+        - If fail_fast is True then the executor is resolved as soon as any thread
+          throws an exception or returns a non-zero result. Or, all the threads
+          returned a zero result code.
+        - If fail_fast is False, then all the threads must have returned a result
+          code or have thrown.
+
+        Returns:
+            An integer result code of either the first failed function or 0 if
+            they all succeeded.
+        """
+        with self.lock:
+            self.lock.wait_for(predicate=lambda: self._is_finished)
+            return self._result
+
+    def _run_fn(self, func):
+        """Entry point to each running thread.
+
+        This function will run the function provided in the append() function.
+        The result value of the function will be used to determine the
+        Executor's result value. If the function throws any exception it will be
+        caught and -1 will be used as the assumed result value.
+
+        Args:
+            func: The function to run.
+        """
+        try:
+            result = func()
+        except:
+            result = -1
+        with self.lock:
+            self.results.append(result)
+            self.lock.notify_all()
+
+    @property
+    def _is_finished(self):
+        """Whether or not the Executor is considered to be done.
+
+        Returns:
+            True if the Executor is considered done.
+        """
+        if len(self.threads) == len(self.results):
+            return True
+        return self.fail_fast and any([result for result in self.results])
+
+    @property
+    def _result(self):
+        """The result code of the Executor.
+
+        Note that _is_finished must be True for this to have any meaning.
+
+        Returns:
+            An int representing the result value of the underlying functions.
+        """
+        return next((result for result in self.results if result), 0)
