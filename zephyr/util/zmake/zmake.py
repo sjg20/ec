@@ -216,18 +216,23 @@ class Zmake:
             for path in pathlib.Path(root_dir).rglob('zmake.yaml'):
                 project_dirs.append(path.parent)
 
-        # Find the longest path string + 3 (for '...') + 8 (for padding).
-        max_project_dir_len = max(len(str(f)) for f in project_dirs) + 11
+        executor = zmake.multiproc.Executor(fail_fast=fail_fast)
+        tmp_dirs = []
         for project_dir in project_dirs:
             is_test = zmake.project.Project(project_dir).config.is_test
-            with tempfile.TemporaryDirectory(
-                    suffix='-{}'.format(os.path.basename(project_dir)),
-                    prefix='zbuild-') as temp_build_dir:
-                # Configure and run the test.
-                rv = self.configure(project_dir=pathlib.Path(project_dir),
-                                    build_dir=pathlib.Path(temp_build_dir),
-                                    build_after_configure=True,
-                                    test_after_configure=is_test)
-                if rv and fail_fast:
-                    return rv
-        return 0
+            temp_build_dir = tempfile.mkdtemp(
+                    suffix='-{}'.format(os.path.basename(project_dir.as_posix())),
+                    prefix='zbuild-')
+            tmp_dirs.append(temp_build_dir)
+            # Configure and run the test.
+            executor.append(
+                func=lambda: self.configure(
+                    project_dir=pathlib.Path(project_dir),
+                    build_dir=pathlib.Path(temp_build_dir),
+                    build_after_configure=True,
+                    test_after_configure=is_test))
+
+        rv = executor.wait()
+        for tmpdir in tmp_dirs:
+            shutil.rmtree(tmpdir)
+        return rv
