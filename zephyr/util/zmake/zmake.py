@@ -204,6 +204,29 @@ class Zmake:
                         util.repr_command(proc.args), proc.returncode))
         return 0
 
+    def _run_pytest(self, directory):
+        """Run pytest on a given directory.
+
+        This is a utility function to help parallelize running pytest on
+        multiple directories.
+
+        Args:
+            directory: The directory that we should run pytest on.
+        Returns:
+            The status code of pytest.
+        """
+        proc = self.jobserver.popen(
+            ['pytest', directory],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8',
+            errors='replace')
+        # Log stdout as DEBUG log messages.
+        zmake.multiproc.log_output(self.logger, logging.DEBUG, proc.stdout)
+        # Log stderr as ERROR log messages
+        zmake.multiproc.log_output(self.logger, logging.ERROR, proc.stderr)
+        return proc.wait()
+
     def testall(self, fail_fast=False):
         """Test all the valid test targets"""
         modules = zmake.modules.locate_modules(self.checkout, version=None)
@@ -231,6 +254,16 @@ class Zmake:
                     build_dir=pathlib.Path(temp_build_dir),
                     build_after_configure=True,
                     test_after_configure=is_test))
+
+        # Find all the directories under zephyr-chrome/tests containing a
+        # test_*.py file. We're using a set here to avoid running the same tests
+        # multiple times.
+        project_dirs = set()
+        for path in pathlib.Path(modules['zephyr-chrome'] / 'tests').rglob('test_*.py'):
+            project_dirs.add(path.parent)
+
+        for project_dir in project_dirs:
+            executor.append(func=lambda: self._run_pytest(directory=project_dir))
 
         rv = executor.wait()
         for tmpdir in tmp_dirs:
