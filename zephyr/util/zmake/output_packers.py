@@ -7,6 +7,7 @@ import pathlib
 import subprocess
 
 import zmake.build_config as build_config
+import zmake.multiproc
 import zmake.util as util
 
 
@@ -147,10 +148,9 @@ class RawBinPacker(BasePacker):
             stderr=subprocess.PIPE,
             encoding='utf-8')
 
-        stdout, stderr = proc.communicate(timeout=5)
-        util.log_multi_line(self.logger, logging.DEBUG, stdout)
-        if proc.returncode:
-            util.log_multi_line(self.logger, logging.ERROR, stderr)
+        zmake.multiproc.log_output(self.logger, logging.DEBUG, proc.stdout)
+        zmake.multiproc.log_output(self.logger, logging.ERROR, proc.stderr)
+        if proc.wait(timeout=5):
             raise OSError('Failed to run binman')
 
         yield work_dir / 'zephyr.bin', 'zephyr.bin'

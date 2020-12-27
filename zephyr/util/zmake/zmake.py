@@ -13,6 +13,7 @@ import tempfile
 import zmake.build_config
 import zmake.modules
 import zmake.jobserver
+import zmake.multiproc
 import zmake.project
 import zmake.toolchains as toolchains
 import zmake.util as util
@@ -104,20 +105,20 @@ class Zmake:
                       | build_config)
             output_dir = build_dir / 'build-{}'.format(build_name)
             kconfig_file = build_dir / 'kconfig-{}.conf'.format(build_name)
-            processes.append(
-                config.popen_cmake(self.jobserver, project_dir, output_dir,
-                                   kconfig_file, stdin=subprocess.DEVNULL,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, encoding='utf-8',
-                                   errors='replace'))
+            proc = config.popen_cmake(self.jobserver, project_dir, output_dir,
+                                      kconfig_file, stdin=subprocess.DEVNULL,
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE,
+                                      encoding='utf-8',
+                                      errors='replace')
+            zmake.multiproc.log_output(self.logger, logging.DEBUG, proc.stdout)
+            zmake.multiproc.log_output(self.logger, logging.ERROR, proc.stderr)
+            processes.append(proc)
         for proc in processes:
-            stdout, _ = proc.communicate()
-            if proc.returncode:
-                util.log_multi_line(self.logger, logging.ERROR, stdout)
+            if proc.wait():
                 raise OSError(
                     "Execution of {} failed (return code={})!\n".format(
                         util.repr_command(proc.args), proc.returncode))
-            util.log_multi_line(self.logger, logging.DEBUG, stdout)
 
         # Create symlink to project
         util.update_symlink(project_dir, build_dir / 'project')
@@ -136,24 +137,24 @@ class Zmake:
         for build_name, build_config in project.iter_builds():
             self.logger.info('Building %s:%s.', build_dir, build_name)
             dirs[build_name] = build_dir / 'build-{}'.format(build_name)
-            procs.append(self.jobserver.popen(
+            proc = self.jobserver.popen(
                 ['/usr/bin/ninja', '-C', dirs[build_name]],
                 # Ninja will connect as a job client instead and claim
                 # many jobs.
                 claim_job=False,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
+                stderr=subprocess.PIPE,
                 encoding='utf-8',
-                errors='replace'))
+                errors='replace')
+            zmake.multiproc.log_output(self.logger, logging.DEBUG, proc.stdout)
+            zmake.multiproc.log_output(self.logger, logging.ERROR, proc.stderr)
+            procs.append(proc)
 
         for proc in procs:
-            stdout, _ = proc.communicate()
-            if proc.returncode:
-                util.log_multi_line(self.logger, logging.ERROR, stdout)
+            if proc.wait():
                 raise OSError(
                     "Execution of {} failed (return code={})!\n".format(
                         util.repr_command(proc.args), proc.returncode))
-            util.log_multi_line(self.logger, logging.DEBUG, stdout)
 
         # Run the packer.
         packer_work_dir = build_dir / 'packer'
@@ -185,22 +186,22 @@ class Zmake:
 
         for output_file in output_files:
             self.logger.info('Running tests in %s.', output_file)
-            procs.append(self.jobserver.popen(
+            proc = self.jobserver.popen(
                 [output_file],
                 claim_job=True,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
+                stderr=subprocess.PIPE,
                 encoding='utf-8',
-                errors='replace'))
+                errors='replace')
+            zmake.multiproc.log_output(self.logger, logging.DEBUG, proc.stdout)
+            zmake.multiproc.log_output(self.logger, logging.ERROR, proc.stderr)
+            procs.append(proc)
 
         for idx, proc in enumerate(procs):
-            stdout, _ = proc.communicate()
-            if proc.returncode:
-                util.log_multi_line(self.logger, logging.ERROR, stdout)
+            if proc.wait():
                 raise OSError(
                     "Execution of {} failed (return code={})!\n".format(
                         util.repr_command(proc.args), proc.returncode))
-            util.log_multi_line(self.logger, logging.DEBUG, stdout)
         return 0
 
     def testall(self, fail_fast=False):
