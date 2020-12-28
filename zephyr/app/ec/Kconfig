@@ -3,18 +3,22 @@
 # found in the LICENSE file.
 
 menuconfig CROS_EC
-	bool "Chrome EC"
+	bool "Chromium OS EC app"
 	imply SHELL
 	imply PRINTK
 	help
-	  Utilize the common Chrome EC application
+	  Enable the common Chromium OS EC application. This prints a message,
+	  starts the EC tasks and sets up any drivers that are needed.
+
+	  This depends on PLATFORM_EC at present, since without the shimmed
+	  tasks, almost nothing can operate.
 
 if CROS_EC
 
 rsource "soc/Kconfig"
 
 choice
-	prompt "ChromeOS EC firmware section"
+	prompt "Chromium OS EC firmware section"
 
 config CROS_EC_RO
 	bool "This build is will be for the RO copy of the EC"
