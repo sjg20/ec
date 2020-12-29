@@ -32,7 +32,7 @@ def _write_dts_file(dts_file, config_header, output_bin, ro_filename, rw_filenam
       #size-cells = <1>;
       binman {{
         filename = "{output_bin}";
-        pad-byte = <0xff>;
+        pad-byte = <0x1d>;
         section@0 {{
           read-only;
           offset = <CONFIG_CROS_EC_RO_MEM_OFF>;
