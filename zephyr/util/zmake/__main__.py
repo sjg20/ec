@@ -9,8 +9,9 @@ import logging
 import pathlib
 import sys
 
-import zmake.zmake as zm
+import zmake.multiproc as multiproc
 import zmake.util as util
+import zmake.zmake as zm
 
 
 def call_with_namespace(func, namespace):
@@ -112,8 +113,9 @@ def main(argv=None):
 
     zmake = call_with_namespace(zm.Zmake, opts)
     subcommand_method = getattr(zmake, opts.subcommand.replace('-', '_'))
-    call_with_namespace(subcommand_method, opts)
-    return 0
+    result = call_with_namespace(subcommand_method, opts)
+    multiproc.wait_for_log_end()
+    return result
 
 
 if __name__ == '__main__':

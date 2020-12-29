@@ -36,11 +36,13 @@ def _log_fd(fd):
         logger, log_level = _logging_map[fd]
         if fd.closed:
             del _logging_map[fd]
+            _logging_cv.notify_all()
             return
         line = fd.readline()
         if not line:
             # EOF
             del _logging_map[fd]
+            _logging_cv.notify_all()
             return
         line = line.strip()
         if line:
@@ -57,6 +59,8 @@ def _prune_logging_fds():
         remove = [fd for fd in _logging_map.keys() if fd.closed]
         for fd in remove:
             del _logging_map[fd]
+        if remove:
+            _logging_cv.notify_all()
 
 
 def _logging_loop():
@@ -111,6 +115,15 @@ def log_output(logger, log_level, file_descriptor):
         os.write(_logging_interrupt_pipe[1], b'x')
         # Notify the condition so we can run the select on the current fds.
         _logging_cv.notify_all()
+
+
+def wait_for_log_end():
+    """Wait for all the logs to be printed.
+
+    This method will block execution until all the logs have been flushed out.
+    """
+    with _logging_cv:
+        _logging_cv.wait_for(lambda: not _logging_map)
 
 
 class Executor:
