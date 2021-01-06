@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# Build the EC's expected ec_version.h file.
+set(ec_version_file "${CMAKE_BINARY_DIR}/zephyr/include/generated/ec_version.h")
+execute_process(COMMAND sh ${PLATFORM_EC}/util/getversion.sh BOARD=${BOARD} > ${ec_version_file})
+
 # Set ${ZEPHYR_CHROME} as a convenience variable to the root path of
 # this module.
 set(ZEPHYR_CHROME "${ZEPHYR_CURRENT_MODULE_DIR}" CACHE PATH
