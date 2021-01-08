@@ -1,6 +1,7 @@
 # Copyright 2020 The Chromium OS Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import os
 import select
 import threading
@@ -150,6 +151,7 @@ class Executor:
         self.lock = threading.Condition()
         self.threads = []
         self.results = []
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def append(self, func):
         """Append the given function to the wait list.
@@ -203,7 +205,8 @@ class Executor:
         """
         try:
             result = func()
-        except:
+        except Exception as ex:
+            self.logger.exception(ex)
             result = -1
         with self.lock:
             self.results.append(result)
