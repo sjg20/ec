@@ -27,8 +27,12 @@ def build(opts):
         f.write(json_format.MessageToJson(metrics))
 
     temp_build_dir = os.path.join('/tmp', 'zbuild')
+
+    # TODO(b/177003034): When this firmware_builder.py script moves to
+    # platform/ec, we won't have to assume where the platform/ec repo
+    # is located.
     targets = [
-        'projects/experimental/volteer', 'projects/experimental/posix-ec'
+        'projects/experimental/volteer', '../ec/zephyr/projects/posix-ec'
     ]
     for target in targets:
         if os.path.exists(temp_build_dir):
