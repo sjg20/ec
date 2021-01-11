@@ -4,8 +4,6 @@
 
 if PLATFORM_EC
 
-rsource "app/Kconfig"
-
 rsource "drivers/Kconfig"
 
 endif
