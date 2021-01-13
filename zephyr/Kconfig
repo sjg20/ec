@@ -20,6 +20,7 @@ menuconfig PLATFORM_EC
 	bool "Chromium OS EC shim"
 	imply PRINTK
 	imply SHELL
+	select HAS_TASK_HOOKS
 	help
 	  The platform/ec Zephyr module allows some code from the
 	  existing Chromium OS EC project to be "shimmed" into Zephyr. With
