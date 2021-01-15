@@ -3,9 +3,10 @@
 # found in the LICENSE file.
 
 zephyr_sources(console.c)
-zephyr_sources(gpio.c)
-zephyr_sources(util.c)
 zephyr_sources(crc.c)
+zephyr_sources(gpio.c)
+zephyr_sources(system.c)
+zephyr_sources(util.c)
 
 zephyr_sources_ifdef(no_libgcc                  libgcc_${ARCH}.S)
 
@@ -17,5 +18,4 @@ zephyr_sources_ifdef(CONFIG_PLATFORM_EC_MKBP_EVENT  mkbp_event.c)
 zephyr_sources_ifdef(CONFIG_PLATFORM_EC_PANIC       panic.c)
 zephyr_sources_ifdef(CONFIG_PLATFORM_EC_TIMER       hwtimer.c)
 zephyr_sources_ifdef(CONFIG_PLATFORM_EC_I2C         i2c.c)
-zephyr_sources_ifdef(CONFIG_CROS_EC                 system.c)
 zephyr_sources_ifdef(CONFIG_SHIMMED_TASKS           tasks.c)
