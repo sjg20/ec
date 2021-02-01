@@ -550,6 +550,28 @@ config PLATFORM_EC_HOSTCMD_RTC
 
 endif # PLATFORM_EC_RTC
 
+choice "SHA256 method"
+	prompt "Select method to use for computing SHA256 hashes"
+
+config PLATFORM_EC_SHA256_SW
+	bool "Compute SHA256 in software"
+	help
+	  Enable this if your EC chip does not support hardware-accelerated
+	  SHA256 computation. This enables the software algorithm which is
+	  quite slow but will work in a pinch.
+
+config PLATFORM_EC_SHA256_HW_ACCELERATE
+	bool "Compute SHA256 in hardware"
+	help
+	  Enable this if your EC chip supports hardware-accelerated SHA256
+	  computation. This is faster than running the algorithm in software,
+	  so is desirable. The verified boot mechanism requests the hash of
+	  a good portion of the EC's code space.
+
+	  The chip support must implement the functions in sha256.h
+
+endchoice # SHA256 method
+
 config PLATFORM_EC_CONSOLE_CMD_SHMEM
 	bool "Console command: shmem"
 	default y
@@ -653,6 +675,17 @@ config PLATFORM_EC_CONSOLE_CMD_WAITMS
 	  two-second wait can cause the EC to reset.
 
 endif # PLATFORM_EC_TIMER
+
+config PLATFORM_EC_VBOOT_HASH
+	bool "Host command: EC_CMD_VBOOT_HASH"
+	default y
+	help
+	  Allows the AP to request hashing functions from the EC.
+
+	  Verified boot can update the EC's read/write code when it detects
+	  that it is an incorrect version. It detects this by asking the EC to
+	  hash itself. If the hash is incorrect, new code is write to the EC's
+	  read/write area.
 
 config PLATFORM_EC_VSTORE
 	bool "Secure temporary storage for verified boot"
