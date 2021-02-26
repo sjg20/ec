@@ -6,8 +6,8 @@
 # physical serial port.
 
 import sys
-from u_boot_spawn import Spawn
-from u_boot_console_base import ConsoleBase
+from zephyr_spawn import Spawn
+from zephyr_console_base import ConsoleBase
 
 class ConsoleExecAttach(ConsoleBase):
     """Represents a physical connection to a U-Boot console, typically via a
@@ -36,7 +36,7 @@ class ConsoleExecAttach(ConsoleBase):
 
         with self.log.section('flash'):
             self.log.action('Flashing U-Boot')
-            cmd = ['u-boot-test-flash', config.board_type, config.board_identity]
+            cmd = ['zephyr-test-flash', config.board_type, config.board_identity]
             runner = self.log.get_runner(cmd[0], sys.stdout)
             runner.run(cmd)
             runner.close()
@@ -55,11 +55,11 @@ class ConsoleExecAttach(ConsoleBase):
         """
 
         args = [self.config.board_type, self.config.board_identity]
-        s = Spawn(['u-boot-test-console'] + args)
+        s = Spawn(['zephyr-test-console'] + args)
 
         try:
             self.log.action('Resetting board')
-            cmd = ['u-boot-test-reset'] + args
+            cmd = ['zephyr-test-reset'] + args
             runner = self.log.get_runner(cmd[0], sys.stdout)
             runner.run(cmd)
             runner.close()

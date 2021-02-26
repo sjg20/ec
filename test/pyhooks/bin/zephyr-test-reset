@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Copyright 2021 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+set -e
+
+bin_dir="`dirname $0`"
+board_type="$1"
+board_ident="$2"
+hostname="`hostname`"
+. "${bin_dir}/${hostname}/conf.${board_type}_${board_ident}"
+
+. "${bin_dir}/reset.${reset_impl}"

@@ -13,7 +13,7 @@ import os
 import pytest
 import re
 import sys
-import u_boot_spawn
+import zephyr_spawn
 
 # Regexes for text we expect U-Boot to send to the console.
 pattern_u_boot_spl_signon = re.compile('(U-Boot SPL \\d{4}\\.\\d{2}[^\r\n]*\\))')
@@ -106,7 +106,7 @@ class ConsoleBase(object):
         self.logstream = self.log.get_stream('console', sys.stdout)
 
         # Array slice removes leading/trailing quotes
-        self.prompt = self.config.buildconfig['config_sys_prompt'][1:-1]
+        self.prompt = self.config.buildconfig['config_shell_prompt_uart'][1:-1]
         self.prompt_compiled = re.compile('^' + re.escape(self.prompt), re.MULTILINE)
         self.p = None
         self.disable_check_count = {pat[PAT_ID]: 0 for pat in bad_pattern_defs}
