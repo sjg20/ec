@@ -192,10 +192,6 @@ def pytest_configure(config):
     # buildman -k puts autoconf.mk in the rootdir, so handle this as well
     # as the standard U-Boot build which leaves it in include/autoconf.mk
     parse_config('.config')
-    if os.path.exists(build_dir + '/' + 'autoconf.mk'):
-        parse_config('autoconf.mk')
-    else:
-        parse_config('include/autoconf.mk')
 
     ubconfig.test_py_dir = test_py_dir
     ubconfig.source_dir = source_dir
@@ -219,12 +215,12 @@ def pytest_configure(config):
     for v in env_vars:
         os.environ['U_BOOT_' + v.upper()] = getattr(ubconfig, v)
 
-    if board_type.startswith('sandbox'):
-        import u_boot_console_sandbox
-        console = u_boot_console_sandbox.ConsoleSandbox(log, ubconfig)
+    if board_type.startswith('native_posix'):
+        import zephyr_console_posix
+        console = zephyr_console_posix.ConsolePosix(log, ubconfig)
     else:
-        import u_boot_console_exec_attach
-        console = u_boot_console_exec_attach.ConsoleExecAttach(log, ubconfig)
+        import zephyr_console_exec_attach
+        console = zephyr_console_exec_attach.ConsoleExecAttach(log, ubconfig)
 
 re_ut_test_list = re.compile(r'_u_boot_list_2_(.*)_test_2_\1_test_(.*)\s*$')
 def generate_ut_subtest(metafunc, fixture_name, sym_path):
