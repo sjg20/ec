@@ -1,0 +1,12 @@
+description: Named Batteries parent node
+
+compatible: "named-batteries"
+
+child-binding:
+    description: Named batteries child node
+    properties:
+       enum-name:
+          type: string
+          required: true
+          enum:
+            - "lgc011"
