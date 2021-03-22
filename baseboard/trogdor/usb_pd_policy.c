@@ -204,6 +204,8 @@ __override int svdm_dp_attention(int port, uint32_t *payload)
 			    polarity_rm_dts(pd_get_polarity(port)));
 	}
 
+/* Allow building this code without AP support on Zephyr, to aid bringup */
+#if !defined(CONFIG_ZEPHYR) || defined(CONFIG_PLATFORM_EC_MKBP_EVENT)
 	if (chipset_in_state(CHIPSET_STATE_ANY_SUSPEND) &&
 	    (irq || lvl))
 		/*
@@ -211,6 +213,7 @@ __override int svdm_dp_attention(int port, uint32_t *payload)
 		 * present.
 		 */
 		pd_notify_dp_alt_mode_entry(port);
+#endif
 
 	/* Configure TCPC for the HPD event, for proper muxing */
 	usb_mux_hpd_update(port, lvl, irq);
