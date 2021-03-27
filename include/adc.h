@@ -14,13 +14,19 @@
 
 #ifdef CONFIG_ZEPHYR
 #ifdef CONFIG_PLATFORM_EC_ADC
-#define NODE_ID_AND_COMMA(node_id) node_id,
+
+#define ZSHIM_ADC_ENUM(val)	DT_CAT(ADC_, val)
+#define ZSHIM_ADC_TYPE(id)	\
+	ZSHIM_ADC_ENUM(DT_ENUM_UPPER_TOKEN(id, enum_name))
+#define ADC_TYPE_WITH_COMMA(id)	ZSHIM_ADC_TYPE(id),
+
 enum adc_channel {
-#if DT_NODE_EXISTS(DT_INST(0, named_adc_channels))
-	DT_FOREACH_CHILD(DT_INST(0, named_adc_channels), NODE_ID_AND_COMMA)
-#endif /* named_adc_channels */
+#if DT_NODE_EXISTS(DT_PATH(named_adc_channels))
+	DT_FOREACH_CHILD(DT_INST(0, named_adc_channels), ADC_TYPE_WITH_COMMA)
+#endif
 	ADC_CH_COUNT
 };
+#undef ADC_TYPE_WITH_COMMA
 
 struct adc_t {
 	const char *name;
