@@ -19,6 +19,17 @@ import zmake.toolchains as toolchains
 import zmake.util as util
 
 
+# Output lines from Zephyr that are not normally useful
+# Send any lines that start with these strings to INFO
+ZEPHYR_SUPRESS = [
+    '-- ',    # device tree messages
+    'Loaded configuration',
+    'Including boilerplate',
+    'Parsing ',
+    'No change to configuration',
+    'No change to Kconfig header',
+    ]
+
 def ninja_log_level_override(line, default_log_level):
     """Update the log level for ninja builds if we hit an error.
 
@@ -30,9 +41,64 @@ def ninja_log_level_override(line, default_log_level):
         default_log_level: The default logging level that will be used for the
           line.
     """
-    if line.startswith("FAILED: "):
-        return logging.CRITICAL
+    # Herewith a long list of things which are really for debugging, not
+    # development. Return logging.DEBUG for each of these.
+
+    # ninja puts progress information on stdout
+    if line.startswith("["):
+        return logging.DEBUG
+    # we don't care about entering directories since it happens every time
+    elif line.startswith("ninja: Entering directory"):
+        return logging.DEBUG
+    # we know the build stops from the compiler messages and ninja return code
+    elif line.startswith("ninja: build stopped"):
+        return logging.DEBUG
+    # someone prints a *** SUCCESS *** message which we don't need
+    elif line.startswith("***"):
+        return logging.DEBUG
+    # this message is a bit like make failing. We already got the error output.
+    elif line.startswith("FAILED: CMakeFiles"):
+        return logging.INFO
+    # if a particular file fails it shows the build line used, but that is not
+    # useful except for debugging.
+    elif line.startswith("ccache"):
+        return logging.DEBUG
+    # Try to drop output about the device tree
+    elif any([line.startswith(x) for x in ZEPHYR_SUPRESS]):
+        return logging.INFO
+    # stupid ninja puts errors on stdout, so fix that
+    elif line.split()[0] not in ["Memory", "FLASH:", "SRAM:", "IDT_LIST:"]:
+        return logging.ERROR
     return default_log_level
+
+
+def cmake_log_level_override(line, default_log_level):
+    """Update the log level for cmake builds if we hit an error.
+
+    Cmake prints some messages that are less than useful during development.
+
+    Args:
+        line: The line that is about to be logged.
+        default_log_level: The default logging level that will be used for the
+          line.
+    """
+    # Strange output from Zephyr that we normally ignore
+    if line.startswith("Including boilerplate"):
+        return logging.DEBUG
+    return default_log_level
+
+
+def get_failure_msg(proc):
+    """Creates a suitable failure message if something exits badly
+
+    Args:
+        proc: subprocess.Popen object containing the thing that failed
+
+    Returns:
+        Failure message as a string:
+    """
+    return "Execution failed (return code={}): {}\n".format(
+        proc.returncode, util.repr_command(proc.args))
 
 
 class Zmake:
@@ -176,9 +242,7 @@ class Zmake:
             processes.append(proc)
         for proc in processes:
             if proc.wait():
-                raise OSError(
-                    "Execution of {} failed (return code={})!\n".format(
-                        util.repr_command(proc.args), proc.returncode))
+                raise OSError(get_failure_msg(proc))
 
         # Create symlink to project
         util.update_symlink(project_dir, build_dir / 'project')
@@ -188,17 +252,32 @@ class Zmake:
         elif build_after_configure:
             return self.build(build_dir=build_dir)
 
-    def build(self, build_dir, output_files_out=None):
+    def build(self, build_dir, output_files_out=None, fail_on_warnings=False,
+              sequential=False):
         """Build a pre-configured build directory."""
+        def wait_and_check_success():
+            for proc in procs:
+                if proc.wait():
+                    raise OSError(get_failure_msg(proc))
+
+            if (fail_on_warnings and
+                zmake.multiproc.get_output_flag_and_clear(logging.ERROR)):
+                self.logger.warning(
+                    "zmake: Warnings detected in build: aborting")
+                return False
+            return True
+
         project = zmake.project.Project(build_dir / 'project')
 
         procs = []
         dirs = {}
         for build_name, build_config in project.iter_builds():
-            self.logger.info('Building %s:%s.', build_dir, build_name)
             dirs[build_name] = build_dir / 'build-{}'.format(build_name)
+            cmd = ['/usr/bin/ninja', '-C', dirs[build_name].as_posix()]
+            self.logger.info('Building %s:%s: %s', build_dir, build_name,
+                             ' '.join(cmd))
             proc = self.jobserver.popen(
-                ['/usr/bin/ninja', '-C', dirs[build_name]],
+                cmd,
                 # Ninja will connect as a job client instead and claim
                 # many jobs.
                 claim_job=False,
@@ -206,19 +285,25 @@ class Zmake:
                 stderr=subprocess.PIPE,
                 encoding='utf-8',
                 errors='replace')
+
             zmake.multiproc.log_output(
                 logger=self.logger,
-                log_level=logging.DEBUG,
+                log_level=logging.INFO,
                 file_descriptor=proc.stdout,
                 log_level_override_func=ninja_log_level_override)
-            zmake.multiproc.log_output(self.logger, logging.ERROR, proc.stderr)
+            zmake.multiproc.log_output(
+                self.logger,
+                logging.ERROR,
+                proc.stderr,
+                log_level_override_func=cmake_log_level_override)
             procs.append(proc)
 
-        for proc in procs:
-            if proc.wait():
-                raise OSError(
-                    "Execution of {} failed (return code={})!\n".format(
-                        util.repr_command(proc.args), proc.returncode))
+            if sequential:
+                if not wait_and_check_success():
+                    return 2
+
+        if not wait_and_check_success():
+            return 2
 
         # Run the packer.
         packer_work_dir = build_dir / 'packer'
@@ -263,9 +348,7 @@ class Zmake:
 
         for idx, proc in enumerate(procs):
             if proc.wait():
-                raise OSError(
-                    "Execution of {} failed (return code={})!\n".format(
-                        util.repr_command(proc.args), proc.returncode))
+                raise OSError(get_failure_msg(proc))
         return 0
 
     def _run_pytest(self, executor, directory):
@@ -305,9 +388,7 @@ class Zmake:
                     proc.stdout, log_level_override_func=get_log_level)
                 rv = proc.wait()
                 if rv:
-                    self.logger.error(
-                        "Execution of {} failed (return code={})!\n".format(
-                            util.repr_command(proc.args), rv))
+                    self.logger.error((get_failure_msg(proc)))
                 return rv
 
         for test_file in directory.glob('test_*.py'):

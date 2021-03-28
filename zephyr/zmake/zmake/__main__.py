@@ -58,6 +58,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--checkout', type=pathlib.Path,
                         help='Path to ChromiumOS checkout')
+    parser.add_argument('-D', '--debug', action='store_true', default=False,
+                        help='Turn on zmake debugging (e.g. stack trace)')
     parser.add_argument('-j', '--jobs', type=int,
                         help='Degree of multiprogramming to use')
     parser.add_argument('-l', '--log-level', choices=list(log_level_map.keys()),
@@ -104,6 +106,10 @@ def main(argv=None):
     build = sub.add_parser('build')
     build.add_argument('build_dir', type=pathlib.Path,
                        help='The build directory used during configuration')
+    build.add_argument('-s', '--sequential', action='store_true',
+                       help='Build sequentiallyinstead of in parallel')
+    build.add_argument('-w', '--fail-on-warnings', action='store_true',
+                       help='Exit with code 2 if warnings are detected')
 
     test = sub.add_parser('test')
     test.add_argument('build_dir', type=pathlib.Path,
@@ -120,6 +126,9 @@ def main(argv=None):
     else:
         log_format = '%(asctime)s - %(name)s/%(levelname)s: %(message)s'
     logging.basicConfig(format=log_format, level=log_level_map.get(opts.log_level))
+
+    if not opts.debug:
+        sys.tracebacklimit = 0
 
     zmake = call_with_namespace(zm.Zmake, opts)
     subcommand_method = getattr(zmake, opts.subcommand.replace('-', '_'))

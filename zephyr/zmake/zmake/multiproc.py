@@ -1,6 +1,7 @@
 # Copyright 2020 The Chromium OS Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import collections
 import logging
 import os
 import select
@@ -21,6 +22,8 @@ _logging_interrupt_pipe = os.pipe()
 _logging_cv = threading.Condition()
 # A map of file descriptors to their logger/logging level tuple.
 _logging_map = {}
+# A map whether output was printed at each logging level
+_logging_output = collections.defaultdict(lambda: False)
 
 
 def _log_fd(fd):
@@ -56,6 +59,7 @@ def _log_fd(fd):
                 log_level = log_level_override_func(line, log_level)
                 _logging_map[fd] = (logger, log_level, log_level_override_func)
             logger.log(log_level, line)
+            _logging_output[log_level] = True
 
 
 def _prune_logging_fds():
@@ -113,7 +117,6 @@ def log_output(logger, log_level, file_descriptor,
 
     Args:
         logger: The logger object to use.
-        log_level: The logging level to use.
         file_descriptor: The file descriptor to read from.
         log_level_override_func: A function used to override the log level. The
           function will be called once per line prior to logging and will be
@@ -138,6 +141,22 @@ def wait_for_log_end():
     """
     with _logging_cv:
         _logging_cv.wait_for(lambda: not _logging_map)
+
+
+def get_output_flag_and_clear(log_level):
+    """Check if output was produced for a particular log level
+
+    Flags for *all* log levels are set to False.
+
+    Args:
+        log_level: The logging level to use
+
+    Returns:
+        True if there was output, else False
+    """
+    result = _logging_output.get(log_level)
+    _logging_output.clear()
+    return result
 
 
 class Executor:
