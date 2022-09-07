@@ -3,12 +3,18 @@
  * found in the LICENSE file.
  */
 
+#include <console.h>
+#include <zephyr/fff.h>
+#include <zephyr/shell/shell_dummy.h>
 #include <zephyr/ztest.h>
 
 #include "ec_commands.h"
 #include "host_command.h"
+#include "system.h"
 #include "vstore.h"
 #include "test/drivers/test_state.h"
+
+//FAKE_VOID_FUNC(system_reset, int);
 
 ZTEST_SUITE(vstore, drivers_predicate_post_main, NULL, NULL, NULL, NULL);
 
@@ -166,4 +172,39 @@ ZTEST_USER(vstore, test_vstore_write_read)
 		     "Please set CONFIG_VSTORE_SLOT_COUNT to >= 2");
 	do_vstore_write_read(0);
 	do_vstore_write_read(1);
+}
+
+ZTEST_USER(vstore, test_vstore_state)
+{
+	struct ec_params_vstore_write write_params = {
+		.slot = 0,
+		/* .data is set up below */
+	};
+	struct host_cmd_handler_args write_args =
+		BUILD_HOST_COMMAND_PARAMS(EC_CMD_VSTORE_WRITE, 0, write_params);
+
+	struct ec_params_reboot_ec reboot_params = {
+		.cmd = EC_REBOOT_JUMP_RW,
+	};
+	struct host_cmd_handler_args reboot_args =
+		BUILD_HOST_COMMAND_PARAMS(EC_CMD_REBOOT_EC, 0, reboot_params);
+	int i;
+
+	shell_backend_dummy_clear_output(get_ec_shell());
+	system_common_pre_init();
+
+	for (i = 0; i < EC_VSTORE_SLOT_SIZE; i++)
+		write_params.data[i] = i + 1;
+
+	/* Write to a slot */
+	zassert_ok(host_command_process(&write_args), NULL);
+	zassert_ok(write_args.result, NULL);
+
+	/* Reboot to RW */
+	RESET_FAKE(system_reset);
+	zassert_ok(host_command_process(&reboot_args), NULL);
+	zassert_ok(reboot_args.result, NULL);
+
+	/* Clear locks to put things into a normal state */
+	vstore_clear_lock();
 }
