@@ -75,7 +75,7 @@ enum pwr_state {
 /**
  * Return current charge state.
  */
-enum pwr_state charge_get_state(void);
+enum pwr_state pwr_get_state(void);
 
 /**
  * Return current charge v2 state.

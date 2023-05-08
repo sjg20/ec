@@ -202,7 +202,7 @@ static int match_node(int node_idx)
 {
 	/* Check if this node depends on power state */
 	if (node_array[node_idx].pwr_state != PWR_STATE_UNCHANGE) {
-		enum pwr_state pwr_state = charge_get_state();
+		enum pwr_state pwr_state = pwr_get_state();
 
 		if (node_array[node_idx].pwr_state != pwr_state)
 			return -1;
