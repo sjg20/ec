@@ -1711,7 +1711,7 @@ static int battery_near_full(void)
 	return 1;
 }
 
-enum charge_state charge_get_state(void)
+enum pwr_state charge_get_state(void)
 {
 	uint32_t chflags;
 
